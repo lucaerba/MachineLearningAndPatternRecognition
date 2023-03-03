@@ -14,3 +14,6 @@ l = [[1,'c'],[2,'a'],[3,'b']]
 print(l)
 l = sorted(l, key = lambda x: x[1])
 print(l)
+t = (1, 2, 3, 'A')
+print(t)
+print(t[3])
