@@ -1,4 +1,6 @@
 import numpy
+import json
+
 def fun():
     a = 2
     print(a)
@@ -31,8 +33,8 @@ print(lE)
 i, val = lE[0]
 print(i,val)
 
-#dict
-a = {'A':1, 'B':2, 'C':3}
+#dict and sets
+a = {'A':1, 'B':2, 'C':3} 
 print(a)
 print(a['B'])
 
@@ -47,3 +49,7 @@ for key in a.keys(): #itera le chiavi
     print(key)
 for value in a.values(): #itera i valori
     print(value)
+
+#string formatt
+s = '%d is %s than %d' % (2, 'lower', 3)
+print(s)
