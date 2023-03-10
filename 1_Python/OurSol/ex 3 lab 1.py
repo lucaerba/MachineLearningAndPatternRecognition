@@ -2,8 +2,7 @@ import sys
 import calendar
 
 def month_extraction(birthdate):
-    birthdate = birthdate.replace('/', '-')
-    date = [int(i) for i in birthdate if i != '-']
+    date = [int(i) for i in birthdate if i != '/']
     index_month = 10*date[2]+date[3]
     return calendar.month_name[index_month]
 
