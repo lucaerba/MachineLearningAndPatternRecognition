@@ -8,7 +8,7 @@ class Bus:
         self.lectures = []
 
     def add_lecture(self,x,y,time):
-        self.lectures.append([x,y,time])
+        self.lectures.append([int(x),int(y),int(time)])
 
     def total_distance(self):
         total = 0
@@ -19,18 +19,18 @@ class Bus:
         return total
 
     def mean_velocity(self):
-        velocity = []
-        total_time = []
+        total_dist = 0
+        total_time = 0
         for i in list(range(1,len(self.lectures))):
             x_prec, y_prec = self.lectures[i-1][0:2]
             x, y = self.lectures[i][0:2]
-            total_dist = np.sqrt((int(x) - int(x_prec)) ** 2 + (int(y) - int(y_prec)) ** 2)
-            time_start = self.lectures[i-1][2]
+            total_dist += ((int(x) - int(x_prec))**2 + (int(y) - int(y_prec))**2 )**0.5
             t = self.lectures[i][2]
-            total_time.append(int(t) - int(time_start))
-            velocity.append(total_dist / total_time[i-1])
-        mean_vel = np.dot(velocity,total_time) / sum(total_time)
-        return mean_vel
+            time_start = self.lectures[i-1][2]
+            total_time += (t - time_start)
+
+        #print("AvgSpeed " + str(mean_vel) + " bus:"+ str(self.id))
+        return total_dist , total_time
 
 def read_file(file):
     f = open(file,'r')
@@ -52,12 +52,13 @@ if param == '-b':
     print(bus_id + " - Total distance: " + str(buses[bus_id].total_distance()))
 elif param == '-l':
     line_id = sys.argv[3]
-    total_mean_velocity = 0
-    total_busses = 0
+    total_dist = 0
+    total_time = 0
     for b in buses.values():
         if(int(b.route) == int(line_id)):
-            total_busses += 1
-            total_mean_velocity += b.mean_velocity()
-    print(line_id + " - Avg Speed: " + str(total_mean_velocity/total_busses))
+            d, t = b.mean_velocity()
+            total_dist += d
+            total_time += t 
+    print(line_id + " - Avg Speed: " + str(total_dist/total_time))
 
 
