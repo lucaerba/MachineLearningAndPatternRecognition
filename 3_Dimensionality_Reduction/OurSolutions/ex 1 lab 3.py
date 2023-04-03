@@ -1,13 +1,12 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-
-input_file = sys.argv[1]
-D = []
-
 def vcol(v):
     v = v.reshape((v.size, 1))
     return v
+
+input_file = sys.argv[1]
+D = []
 
 with open(input_file, 'r') as f:
     for line in f:
