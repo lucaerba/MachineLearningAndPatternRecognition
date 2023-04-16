@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+# import os
+# print(os.path.abspath("."))
 
 def vcol(v):
     v = v.reshape((v.size, 1))
@@ -67,13 +69,13 @@ mu = np.load('muND.npy')
 C = np.load('CND.npy')
 pdfSol = vcol(np.load('llND.npy'))
 pdfGau = logpdf_GAU_ND(XND, mu, C)
-# print(np.abs(pdfSol - pdfGau).max())
+print(np.abs(pdfSol - pdfGau).max())
 
 mu_calc, sigma_calc = mu_and_sigma_ML(XND)
-print(mu_calc, '\n' ,sigma_calc)
+# print(mu_calc, '\n' ,sigma_calc)
 
 ll = loglikelihood(XND, mu_calc, sigma_calc)
-print(ll)
+# print(ll)
 
 X1D = np.load('X1D.npy')
 mu_calc, sigma_calc = mu_and_sigma_ML(X1D)
@@ -81,10 +83,10 @@ plt.figure()
 plt.hist(X1D.ravel(), bins=50, density=True)
 XPlot = np.linspace(-8, 12, 1000)
 plt.plot(XPlot.ravel(), np.exp(logpdf_GAU_ND(vrow(XPlot), mu_calc, sigma_calc)))
-plt.show()
+# plt.show()
 
 ll = loglikelihood(X1D, mu_calc, sigma_calc)
-print(ll)
+# print(ll)
 
 
 
