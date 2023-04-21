@@ -15,26 +15,6 @@ def load_iris():
     D, L = sklearn.datasets.load_iris()['data'].T, sklearn.datasets.load_iris()['target']
     return D, L
 
-def load(file):
-    attributes = []
-    fam_list = []
-    families = {
-        'Iris-setosa' : 0,
-        'Iris-versicolor' : 1,
-        'Iris-virginica' : 2
-    }
-
-    with open(file, 'r') as file:
-        for line in file:
-            vector = line.split(',')
-            flower_fam = vector.pop(-1).strip()
-            fam_ind = families[flower_fam]
-            vector = np.array([float(i) for i in vector]).reshape(len(vector),1)
-            attributes.append(vector)
-            fam_list.append(fam_ind)
-
-    return np.hstack(attributes), np.array((fam_list))
-
 def split_db_2to1(D, L, seed=0):
     nTrain = int(D.shape[1]*2.0/3.0)
     np.random.seed(seed)
@@ -95,8 +75,7 @@ def loglikelihood(x, mu_ML, C_ML):
     l = np.sum(logpdf_GAU_ND(x, mu_ML, C_ML))
     return l
 
-input_file = sys.argv[1]
-D, L = load(input_file)
+D, L = load_iris()
 (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
 
 mu_ML = {}
@@ -105,8 +84,7 @@ C_ML = {}
 for i in range(3):
     D_class = DTR[:, LTR == i]
     mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class)
-
-# print(mu_ML, '\n\n', C_ML)
+    C_ML[i] = C_ML[i] * np.eye(len(C_ML[i]))
 
 S = []
 P_C = 1/3
@@ -116,17 +94,8 @@ for i in range(3):
     like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
     S.extend(like)
 
-# np.reshape(S, (3,50))
-
-# print(S)
 SJoint = np.array(S) * P_C
-Corr_Sol = np.load('../../SJoint_MVG.npy')
-
-# print(np.max(err))
-# print(SJoint)
-# print(Corr_Sol)
-# err = (np.abs(Corr_Sol - SJoint))
-# print("error: ", np.max(err))
+# Corr_Sol = np.load('../../SJoint_MVG.npy')
 
 SMarginal = vrow(SJoint.sum(0))
 
@@ -138,23 +107,15 @@ check = predicted_labels == LTE
 # print(check)
 
 acc = len(check[check == True]) / len(LTE)
+print(1-acc)
 
-S = []
-for i in range(3):
-    D_class = DTE
-    like = vrow(np.array(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i])))
-    S.extend(like)
 
-SJoint_log = np.array(S) + np.log(P_C)
-SMarginal_log = vrow(sp.special.logsumexp(SJoint_log, axis=0))
-logSPost = SJoint_log - SMarginal_log
-SPost = np.exp(logSPost)
 
-predicted_labels = np.argmax(SPost, axis=0)
 
-check = predicted_labels == LTE
-# print(check)
 
-acc = len(check[check == True]) / len(LTE)
+
+
+
+
 
 
