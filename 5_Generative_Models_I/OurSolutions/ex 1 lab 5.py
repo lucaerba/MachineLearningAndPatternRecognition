@@ -51,7 +51,11 @@ def logpdf_GAU_ND(x, mu, C):
     logN = []
     x = np.array(x)
     M = x.shape[0]
-    N = x.shape[1]
+    if len(x.shape) == 2:
+        N = x.shape[1]
+    else:
+        N = 1
+        x = np.reshape(x,(4,1))
     C_inv = np.linalg.inv(C)
     xc = (x - vcol(mu))
     x_cent = np.reshape(xc, (M*N, 1), order='F')
@@ -188,10 +192,50 @@ def predicted_labels_and_accuracy(S, LTE):
     acc = len(check[check == True]) / len(LTE)
     return predicted_labels, acc
 
+def LOO_cross_validation(D, L, seed=1):
+    np.random.seed(seed)
+    idx = np.random.permutation(D.shape[1])
+    err = []
+    for i in range(D.shape[1]):
+        idxTest = idx[i]
+        idxTrain = idx[idx != idxTest]
+        DTR = D[:, idxTrain]
+        DTE = D[:, idxTest]
+        LTR = L[idxTrain]
+        LTE = np.ones((1,1)) * L[idxTest]
+        Sjoint = score_matrix_MVG(DTR, LTR, DTE)
+        pred, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
+        err.append(1-acc_i)
+    return np.mean(err)
+
+def Kfold_cross_validation(D, L, K, seed=1):
+    nSamp = int(D.shape[1]/K)
+    np.random.seed(seed)
+    idx = np.random.permutation(D.shape[1])
+    err = []
+    for i in range(K):
+        idxTest = idx[i*nSamp:nSamp*(i+1)]
+        idxTrain = [x for x in idx if x not in idxTest]
+        DTR = D[:, idxTrain]
+        DTE = D[:, idxTest]
+        LTR = L[idxTrain]
+        LTE = L[idxTest]
+        Sjoint = score_matrix_MVG(DTR, LTR, DTE)
+        pred, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
+        err.append(1-acc_i)
+    return np.mean(err)
+
+
 D, L = load_iris()
-(DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
-Sjoint = score_matrix_TiedNaiveBayes(DTR, LTR, DTE)
-pred, acc = predicted_labels_and_accuracy(Sjoint,LTE)
+# (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
+#
+# Sjoint = score_matrix_TiedNaiveBayes(DTR, LTR, DTE)
+#
+# pred, acc = predicted_labels_and_accuracy(Sjoint,LTE)
+
+# err = LOO_cross_validation(D, L)
+err = Kfold_cross_validation(D, L, 5)
+print(err)
 
 
 
