@@ -95,66 +95,141 @@ def loglikelihood(x, mu_ML, C_ML):
     l = np.sum(logpdf_GAU_ND(x, mu_ML, C_ML))
     return l
 
-input_file = sys.argv[1]
-D, L = load(input_file)
+def score_matrix_MVG(DTR, LTR, DTE):
+    mu_ML = {}
+    C_ML = {}
+    S = []
+    P_C = 1 / 3
+
+    for i in range(3):
+        D_class = DTR[:, LTR == i]
+        mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class)
+
+    for i in range(3):
+        D_class = DTE
+        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
+        S.extend(like)
+    SJoint = np.array(S) * P_C
+    return SJoint
+
+def score_matrix_NaiveBayes(DTR, LTR, DTE):
+    mu_ML = {}
+    C_ML = {}
+    S = []
+    P_C = 1 / 3
+
+    for i in range(3):
+        D_class = DTR[:, LTR == i]
+        mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class)
+        C_ML[i] = C_ML[i] * np.eye(len(C_ML[i]))
+
+    for i in range(3):
+        D_class = DTE
+        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
+        S.extend(like)
+
+    Sjoint = np.array(S) * P_C
+    return Sjoint
+
+def score_matrix_TiedMVG(DTR, LTR, DTE):
+    mu_ML = {}
+    C_ML = {}
+    D_class = {}
+
+    for i in range(3):
+        D_class[i] = DTR[:, LTR == i]
+        mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class[i])
+
+    N_c = np.array([v.shape[1] for k, v in D_class.items()])
+    sigma = [v for k, v in C_ML.items()]
+    sigma_star = float(np.sum(N_c)) ** -1 * np.dot(vrow(N_c), np.reshape(sigma, (3, 16)))
+    sigma_star = np.reshape(sigma_star, (4, 4))
+    S = []
+    P_C = 1 / 3
+
+    for i in range(3):
+        D_class = DTE
+        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
+        S.extend(like)
+
+    SJoint = np.array(S) * P_C
+    return SJoint
+
+def score_matrix_TiedNaiveBayes(DTR, LTR, DTE):
+    mu_ML = {}
+    C_ML = {}
+    D_class = {}
+
+    for i in range(3):
+        D_class[i] = DTR[:, LTR == i]
+        mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class[i])
+        C_ML[i] = C_ML[i] * np.eye(len(C_ML[i]))
+
+    N_c = np.array([v.shape[1] for k, v in D_class.items()])
+    sigma = [v for k, v in C_ML.items()]
+    sigma_star = float(np.sum(N_c)) ** -1 * np.dot(vrow(N_c), np.reshape(sigma, (3, 16)))
+    sigma_star = np.reshape(sigma_star, (4, 4))
+    S = []
+    P_C = 1 / 3
+
+    for i in range(3):
+        D_class = DTE
+        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
+        S.extend(like)
+
+    SJoint = np.array(S) * P_C
+    return SJoint
+
+def predicted_labels_and_accuracy(S, LTE):
+    SMarginal = vrow(S.sum(0))
+    SPost = S / SMarginal
+    predicted_labels = np.argmax(SPost, axis=0)
+    check = predicted_labels == LTE
+    acc = len(check[check == True]) / len(LTE)
+    return predicted_labels, acc
+
+D, L = load_iris()
 (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
+Sjoint = score_matrix_TiedNaiveBayes(DTR, LTR, DTE)
+pred, acc = predicted_labels_and_accuracy(Sjoint,LTE)
 
-mu_ML = {}
-C_ML = {}
 
-for i in range(3):
-    D_class = DTR[:, LTR == i]
-    mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class)
 
-# print(mu_ML, '\n\n', C_ML)
 
-S = []
-P_C = 1/3
 
-for i in range(3):
-    D_class = DTE
-    like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
-    S.extend(like)
 
-# np.reshape(S, (3,50))
 
-# print(S)
-SJoint = np.array(S) * P_C
-Corr_Sol = np.load('../../SJoint_MVG.npy')
 
-# print(np.max(err))
-# print(SJoint)
-# print(Corr_Sol)
-# err = (np.abs(Corr_Sol - SJoint))
-# print("error: ", np.max(err))
 
-SMarginal = vrow(SJoint.sum(0))
 
-SPost = SJoint / SMarginal
 
-predicted_labels = np.argmax(SPost, axis=0)
 
-check = predicted_labels == LTE
-# print(check)
 
-acc = len(check[check == True]) / len(LTE)
 
-S = []
-for i in range(3):
-    D_class = DTE
-    like = vrow(np.array(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i])))
-    S.extend(like)
 
-SJoint_log = np.array(S) + np.log(P_C)
-SMarginal_log = vrow(sp.special.logsumexp(SJoint_log, axis=0))
-logSPost = SJoint_log - SMarginal_log
-SPost = np.exp(logSPost)
 
-predicted_labels = np.argmax(SPost, axis=0)
 
-check = predicted_labels == LTE
-# print(check)
 
-acc = len(check[check == True]) / len(LTE)
+
+
+
+### MVG with log-densities ###
+# S = []
+# for i in range(3):
+#     D_class = DTE
+#     like = vrow(np.array(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i])))
+#     S.extend(like)
+#
+# SJoint_log = np.array(S) + np.log(P_C)
+# SMarginal_log = vrow(sp.special.logsumexp(SJoint_log, axis=0))
+# logSPost = SJoint_log - SMarginal_log
+# SPost = np.exp(logSPost)
+#
+# predicted_labels = np.argmax(SPost, axis=0)
+#
+# check = predicted_labels == LTE
+# # print(check)
+#
+# acc = len(check[check == True]) / len(LTE)
 
 
