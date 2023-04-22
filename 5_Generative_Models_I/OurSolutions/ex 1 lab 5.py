@@ -210,11 +210,15 @@ def LOO_cross_validation(D, L, seed=1):
 
 def Kfold_cross_validation(D, L, K, seed=1):
     nSamp = int(D.shape[1]/K)
+    residuals = D.shape[1] - nSamp*K
+    sub_arr = np.ones((K, 1)) * nSamp
+    if residuals != 0:
+        sub_arr = np.array([int(x+1) for x in sub_arr[:residuals]] + [int(x) for x in sub_arr[residuals:]])
     np.random.seed(seed)
     idx = np.random.permutation(D.shape[1])
     err = []
     for i in range(K):
-        idxTest = idx[i*nSamp:nSamp*(i+1)]
+        idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i+1]))]
         idxTrain = [x for x in idx if x not in idxTest]
         DTR = D[:, idxTrain]
         DTE = D[:, idxTest]
