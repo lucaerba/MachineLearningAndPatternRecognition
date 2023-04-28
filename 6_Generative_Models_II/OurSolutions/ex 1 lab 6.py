@@ -161,7 +161,7 @@ if __name__ == '__main__':
 
         check = [i for i in predicted_indices if i == cantiche[ii]]
         print(len(check)/len(predicted_indices))
-    
+    #cazzi
 
    
     
