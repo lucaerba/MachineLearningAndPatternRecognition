@@ -58,32 +58,32 @@ def dictionaryAndfreq(trainset):
         
     return dictionary, frequencies
 
-def dict_freq_tot(dict1, freq1, dict2, freq2, dict3, freq3):
+def dict_freq_tot(dict1, dict2, dict3):
     dictionarytot = {}
     frequenciestot = {}
     eps = 0.001
-            
-    #-----------------------------------#
+
     for key in dict1:
-        dictionarytot[key] = dict1[key]+eps, 0+eps, 0+eps
-        
+        dictionarytot[key] = dict1[key], 0, 0
+
     for key in dict2:
-        if(key in dictionarytot):
-            dictionarytot[key] = dict1[key]+eps, dict2[key]+eps, 0+eps
+        if(key in dict1):
+            dictionarytot[key] = dict1[key], dict2[key], 0
         else:
-            dictionarytot[key] = 0+eps, dict2[key]+eps, 0+eps
+            dictionarytot[key] = 0, dict2[key], 0
             
     for key in dict3:
-        if(key in dictionarytot):
-            if(key in dict1 and key in dict2):
-                dictionarytot[key] = dict1[key]+eps, dict2[key]+eps, dict3[key]+eps
-            elif(key in dict1):
-                dictionarytot[key] = dict1[key]+eps, 0+eps, dict3[key]+eps
-            else:
-                dictionarytot[key] = 0+eps, dict2[key]+eps, dict3[key]+eps
+        if(key in dict1 and key in dict2):
+            dictionarytot[key] = dict1[key], dict2[key], dict3[key]
+        elif(key in dict1):
+            dictionarytot[key] = dict1[key], 0, dict3[key]
+        elif key in dict2:
+            dictionarytot[key] = 0, dict2[key], dict3[key]
         else:
-            dictionarytot[key] = 0+eps, 0+eps, dict3[key]+eps
-    
+            dictionarytot[key] = 0, 0, dict3[key]
+
+    dictionarytot = {k: np.array(v)+[eps,eps,eps] for k,v in dictionarytot.items()}
+
     N1 = sum(dict1.values())
     N2 = sum(dict2.values())
     N3 = sum(dict3.values())
@@ -115,9 +115,9 @@ if __name__ == '__main__':
     dictionarypur, frequenciespur = dictionaryAndfreq(lPur_train)
     dictionarypar, frequenciespar = dictionaryAndfreq(lPar_train)
     
-    dictionarytot, frequenciestot = dict_freq_tot(dictionaryinf, frequenciesinf, dictionarypur, frequenciespur, dictionarypar, frequenciespar)
+    dictionarytot, frequenciestot = dict_freq_tot(dictionaryinf, dictionarypur, dictionarypar)
     
-    #print(frequenciestot)
+    # print(dictionarytot)
     
     mat_occurencies =[]
     for k in dictionarytot:
@@ -134,31 +134,33 @@ if __name__ == '__main__':
     mat_frequencies = np.transpose(mat_frequencies)
     
     
-    #print(mat_occurencies)
+    # print(mat_occurencies)
     #print(np.array(mat_occurencies).shape)
-    #print(mat_frequencies)
+    # print(mat_frequencies)
     #print(np.array(mat_frequencies).shape)
     
-    scores = np.log(mat_frequencies)*mat_occurencies
-    
     #print(np.array(list(scores)))
-    print(scores)
-    
-    
-    for x in lPar_evaluation:
-        p1 = 0
-        p2 = 0
-        p3 = 0
-        print(x)
-        for xi in x:
-            if(xi in dictionarytot.keys()):
-                p1 += scores[0][list(dictionarytot).index(xi)]
-                p2 += scores[1][list(dictionarytot).index(xi)]
-                p3 += scores[2][list(dictionarytot).index(xi)]
-        print(np.argmin([p1,p2,p3]))
-        
-    
-    
+    # print(scores)
+
+    eval = [lInf_evaluation, lPur_evaluation, lPar_evaluation]
+    cantiche = [0, 1, 2]
+    for ii in cantiche:
+        predicted_indices = []
+        for x in eval[ii]:
+            L1 = 0
+            L2 = 0
+            L3 = 0
+            # print(x)
+            for xi in x.split(" "):
+                if(xi in dictionarytot.keys()):
+                    ind = list(dictionarytot).index(xi)
+                    L1 += np.log(mat_frequencies[0,ind])
+                    L2 += np.log(mat_frequencies[1,ind])
+                    L3 += np.log(mat_frequencies[2,ind])
+            predicted_indices.append(np.argmax([L1,L2,L3]))
+
+        check = [i for i in predicted_indices if i == cantiche[ii]]
+        print(len(check)/len(predicted_indices))
     
 
    
