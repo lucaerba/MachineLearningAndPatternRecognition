@@ -1,7 +1,97 @@
-import sklearn.datasets
-import numpy as np
-import scipy as sp
 import sys
+import numpy as np
+
+def load_data():
+
+    lInf = []
+
+    f=open('../Data/inferno.txt', encoding="ISO-8859-1")
+
+    for line in f:
+        lInf.append(line.strip())
+    f.close()
+
+    lPur = []
+
+    f=open('../Data/purgatorio.txt', encoding="ISO-8859-1")
+
+    for line in f:
+        lPur.append(line.strip())
+    f.close()
+
+    lPar = []
+
+    f=open('../Data/paradiso.txt', encoding="ISO-8859-1")
+
+    for line in f:
+        lPar.append(line.strip())
+    f.close()
+    
+    return lInf, lPur, lPar
+
+def split_data(l, n):
+
+    lTrain, lTest = [], []
+    for i in range(len(l)):
+        if i % n == 0:
+            lTest.append(l[i])
+        else:
+            lTrain.append(l[i])
+            
+    return lTrain, lTest
+
+def dictionaryAndfreq(trainset):
+    dictionary = {}
+
+    for line in trainset:
+        for word in line.split(" "):
+            if (word in dictionary.keys()):
+                dictionary[word] += 1
+            else:
+                dictionary[word] = 1
+        
+    N = sum(dictionary.values())
+    
+    frequencies = {}
+    for key in dictionary:
+        frequencies[key] = dictionary[key]/N
+        
+    return dictionary, frequencies
+
+def dict_freq_tot(dict1, freq1, dict2, freq2, dict3, freq3):
+    dictionarytot = {}
+    frequenciestot = {}
+    eps = 0.001
+            
+    #-----------------------------------#
+    for key in dict1:
+        dictionarytot[key] = dict1[key]+eps, 0+eps, 0+eps
+        
+    for key in dict2:
+        if(key in dictionarytot):
+            dictionarytot[key] = dict1[key]+eps, dict2[key]+eps, 0+eps
+        else:
+            dictionarytot[key] = 0+eps, dict2[key]+eps, 0+eps
+            
+    for key in dict3:
+        if(key in dictionarytot):
+            if(key in dict1 and key in dict2):
+                dictionarytot[key] = dict1[key]+eps, dict2[key]+eps, dict3[key]+eps
+            elif(key in dict1):
+                dictionarytot[key] = dict1[key]+eps, 0+eps, dict3[key]+eps
+            else:
+                dictionarytot[key] = 0+eps, dict2[key]+eps, dict3[key]+eps
+        else:
+            dictionarytot[key] = 0+eps, 0+eps, dict3[key]+eps
+    
+    N1 = sum(dict1.values())
+    N2 = sum(dict2.values())
+    N3 = sum(dict3.values())
+    
+    for k in dictionarytot:
+        frequenciestot[k] = dictionarytot[k][0]/N1, dictionarytot[k][1]/N2, dictionarytot[k][2]/N3
+         
+    return dictionarytot, frequenciestot
 
 def vcol(v):
     v = v.reshape((v.size, 1))
@@ -11,269 +101,66 @@ def vrow(v):
     v = v.reshape((1, v.size))
     return v
 
-def load_iris():
-    D, L = sklearn.datasets.load_iris()['data'].T, sklearn.datasets.load_iris()['target']
-    return D, L
+if __name__ == '__main__':
 
-def load(file):
-    attributes = []
-    fam_list = []
-    families = {
-        'Iris-setosa' : 0,
-        'Iris-versicolor' : 1,
-        'Iris-virginica' : 2
-    }
+    # Load the tercets and split the lists in training and test lists
+    
+    lInf, lPur, lPar = load_data()
 
-    with open(file, 'r') as file:
-        for line in file:
-            vector = line.split(',')
-            flower_fam = vector.pop(-1).strip()
-            fam_ind = families[flower_fam]
-            vector = np.array([float(i) for i in vector]).reshape(len(vector),1)
-            attributes.append(vector)
-            fam_list.append(fam_ind)
+    lInf_train, lInf_evaluation = split_data(lInf, 4)
+    lPur_train, lPur_evaluation = split_data(lPur, 4)
+    lPar_train, lPar_evaluation = split_data(lPar, 4)
+    
+    dictionaryinf, frequenciesinf = dictionaryAndfreq(lInf_train)
+    dictionarypur, frequenciespur = dictionaryAndfreq(lPur_train)
+    dictionarypar, frequenciespar = dictionaryAndfreq(lPar_train)
+    
+    dictionarytot, frequenciestot = dict_freq_tot(dictionaryinf, frequenciesinf, dictionarypur, frequenciespur, dictionarypar, frequenciespar)
+    
+    #print(frequenciestot)
+    
+    mat_occurencies =[]
+    for k in dictionarytot:
+        mat_occurencies.append( vcol(np.array(dictionarytot[k])))
+        
+    mat_occurencies = np.reshape(mat_occurencies, (np.array(mat_occurencies).shape[0], np.array(mat_occurencies).shape[1]))
+    mat_occurencies = np.transpose(mat_occurencies)
+    
+    mat_frequencies =[]
+    for k in frequenciestot:
+        mat_frequencies.append( vcol(np.array(frequenciestot[k])))
+        
+    mat_frequencies = np.reshape(mat_frequencies, (np.array(mat_frequencies).shape[0], np.array(mat_frequencies).shape[1]))
+    mat_frequencies = np.transpose(mat_frequencies)
+    
+    
+    #print(mat_occurencies)
+    #print(np.array(mat_occurencies).shape)
+    #print(mat_frequencies)
+    #print(np.array(mat_frequencies).shape)
+    
+    scores = np.log(mat_frequencies)*mat_occurencies
+    
+    #print(np.array(list(scores)))
+    print(scores)
+    
+    
+    for x in lPar_evaluation:
+        p1 = 0
+        p2 = 0
+        p3 = 0
+        print(x)
+        for xi in x:
+            if(xi in dictionarytot.keys()):
+                p1 += scores[0][list(dictionarytot).index(xi)]
+                p2 += scores[1][list(dictionarytot).index(xi)]
+                p3 += scores[2][list(dictionarytot).index(xi)]
+        print(np.argmin([p1,p2,p3]))
+        
+    
+    
+    
 
-    return np.hstack(attributes), np.array((fam_list))
-
-def split_db_2to1(D, L, seed=0):
-    nTrain = int(D.shape[1]*2.0/3.0)
-    np.random.seed(seed)
-    idx = np.random.permutation(D.shape[1])
-    idxTrain = idx[0:nTrain]
-    idxTest = idx[nTrain:]
-    DTR = D[:, idxTrain]
-    DTE = D[:, idxTest]
-    LTR = L[idxTrain]
-    LTE = L[idxTest]
-    return (DTR, LTR), (DTE, LTE)
-
-def logpdf_GAU_ND(x, mu, C):
-    logN = []
-    x = np.array(x)
-    M = x.shape[0]
-    if len(x.shape) == 2:
-        N = x.shape[1]
-    else:
-        N = 1
-        x = np.reshape(x,(4,1))
-    C_inv = np.linalg.inv(C)
-    xc = (x - vcol(mu))
-    x_cent = np.reshape(xc, (M*N, 1), order='F')
-    i = 0
-    while i in range(N*M):
-        xx = x_cent[i:i+M]
-        first_term = -.5* M*np.log(2*np.pi)
-        second_term = -.5* np.linalg.slogdet(C)[1]
-        third_term = -.5* np.dot(vrow(xx),np.ones((M,1))*np.dot(C_inv,vcol(xx)))
-        i += M
-        logN.append(first_term + second_term + third_term)
-    return np.vstack(logN)
-
-def logpdf_GAU_ND_fast(X, mu, C):
-    XC = X - mu
-    M = X.shape[0]
-    const = - 0.5 * M * np.log(2*np.pi)
-    logdet = np.linalg.slogdet(C)[1]
-    L = np.linalg.inv(C)
-    v = (XC*np.dot(L, XC)).sum(0)
-    return const - 0.5 * logdet - 0.5 * v
-
-def mu_and_sigma_ML(x):
-    N = x.shape[1]
-    M = x.shape[0]
-
-    mu_ML = []
-    sigma_ML = []
-
-    for i in range(M):
-        mu_ML.append(np.sum(x[i,:]) / N)
-
-    x_cent = x - np.reshape(mu_ML, (M,1))
-    for i in range(M):
-        for j in range(M):
-            sigma_ML.append(np.dot(x_cent[i,:],x_cent[j,:].T) / N)
-
-    return np.vstack(mu_ML), np.reshape(sigma_ML, (M,M))
-
-def loglikelihood(x, mu_ML, C_ML):
-    l = np.sum(logpdf_GAU_ND(x, mu_ML, C_ML))
-    return l
-
-def score_matrix_MVG(DTR, LTR, DTE):
-    mu_ML = {}
-    C_ML = {}
-    S = []
-    P_C = 1 / 3
-
-    for i in range(3):
-        D_class = DTR[:, LTR == i]
-        mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class)
-
-    for i in range(3):
-        D_class = DTE
-        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
-        S.extend(like)
-    SJoint = np.array(S) * P_C
-    return SJoint
-
-def score_matrix_NaiveBayes(DTR, LTR, DTE):
-    mu_ML = {}
-    C_ML = {}
-    S = []
-    P_C = 1 / 3
-
-    for i in range(3):
-        D_class = DTR[:, LTR == i]
-        mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class)
-        C_ML[i] = C_ML[i] * np.eye(len(C_ML[i]))
-
-    for i in range(3):
-        D_class = DTE
-        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
-        S.extend(like)
-
-    Sjoint = np.array(S) * P_C
-    return Sjoint
-
-def score_matrix_TiedMVG(DTR, LTR, DTE):
-    mu_ML = {}
-    C_ML = {}
-    D_class = {}
-
-    for i in range(3):
-        D_class[i] = DTR[:, LTR == i]
-        mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class[i])
-
-    N_c = np.array([v.shape[1] for k, v in D_class.items()])
-    sigma = [v for k, v in C_ML.items()]
-    sigma_star = float(np.sum(N_c)) ** -1 * np.dot(vrow(N_c), np.reshape(sigma, (3, 16)))
-    sigma_star = np.reshape(sigma_star, (4, 4))
-    S = []
-    P_C = 1 / 3
-
-    for i in range(3):
-        D_class = DTE
-        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
-        S.extend(like)
-
-    SJoint = np.array(S) * P_C
-    return SJoint
-
-def score_matrix_TiedNaiveBayes(DTR, LTR, DTE):
-    mu_ML = {}
-    C_ML = {}
-    D_class = {}
-
-    for i in range(3):
-        D_class[i] = DTR[:, LTR == i]
-        mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class[i])
-        C_ML[i] = C_ML[i] * np.eye(len(C_ML[i]))
-
-    N_c = np.array([v.shape[1] for k, v in D_class.items()])
-    sigma = [v for k, v in C_ML.items()]
-    sigma_star = float(np.sum(N_c)) ** -1 * np.dot(vrow(N_c), np.reshape(sigma, (3, 16)))
-    sigma_star = np.reshape(sigma_star, (4, 4))
-    S = []
-    P_C = 1 / 3
-
-    for i in range(3):
-        D_class = DTE
-        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
-        S.extend(like)
-
-    SJoint = np.array(S) * P_C
-    return SJoint
-
-def predicted_labels_and_accuracy(S, LTE):
-    SMarginal = vrow(S.sum(0))
-    SPost = S / SMarginal
-    predicted_labels = np.argmax(SPost, axis=0)
-    check = predicted_labels == LTE
-    acc = len(check[check == True]) / len(LTE)
-    return predicted_labels, acc
-
-def LOO_cross_validation(D, L, seed=1):
-    np.random.seed(seed)
-    idx = np.random.permutation(D.shape[1])
-    err = []
-    for i in range(D.shape[1]):
-        idxTest = idx[i]
-        idxTrain = idx[idx != idxTest]
-        DTR = D[:, idxTrain]
-        DTE = D[:, idxTest]
-        LTR = L[idxTrain]
-        LTE = np.ones((1,1)) * L[idxTest]
-        Sjoint = score_matrix_MVG(DTR, LTR, DTE)
-        pred, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
-        err.append(1-acc_i)
-    return np.mean(err)
-
-def Kfold_cross_validation(D, L, K, seed=1):
-    nSamp = int(D.shape[1]/K)
-    np.random.seed(seed)
-    idx = np.random.permutation(D.shape[1])
-    err = []
-    for i in range(K):
-        idxTest = idx[i*nSamp:nSamp*(i+1)]
-        idxTrain = [x for x in idx if x not in idxTest]
-        DTR = D[:, idxTrain]
-        DTE = D[:, idxTest]
-        LTR = L[idxTrain]
-        LTE = L[idxTest]
-        Sjoint = score_matrix_MVG(DTR, LTR, DTE)
-        pred, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
-        err.append(1-acc_i)
-    return np.mean(err)
-
-
-D, L = load_iris()
-# (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
-#
-# Sjoint = score_matrix_TiedNaiveBayes(DTR, LTR, DTE)
-#
-# pred, acc = predicted_labels_and_accuracy(Sjoint,LTE)
-
-# err = LOO_cross_validation(D, L)
-err = Kfold_cross_validation(D, L, 5)
-print(err)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### MVG with log-densities ###
-# S = []
-# for i in range(3):
-#     D_class = DTE
-#     like = vrow(np.array(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i])))
-#     S.extend(like)
-#
-# SJoint_log = np.array(S) + np.log(P_C)
-# SMarginal_log = vrow(sp.special.logsumexp(SJoint_log, axis=0))
-# logSPost = SJoint_log - SMarginal_log
-# SPost = np.exp(logSPost)
-#
-# predicted_labels = np.argmax(SPost, axis=0)
-#
-# check = predicted_labels == LTE
-# # print(check)
-#
-# acc = len(check[check == True]) / len(LTE)
-
-
+   
+    
+    
