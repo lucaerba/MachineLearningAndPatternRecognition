@@ -63,26 +63,24 @@ def dict_freq_tot(dict1, dict2, dict3):
     frequenciestot = {}
     eps = 0.001
 
-    for key in dict1:
-        dictionarytot[key] = dict1[key], 0, 0
+    all_keys = list(set(list(dict1) + list(dict2) + list(dict3)))
+    for key in all_keys:
+        try:
+            val1 = dict1[key]
+        except KeyError:
+            val1 = 0
 
-    for key in dict2:
-        if(key in dict1):
-            dictionarytot[key] = dict1[key], dict2[key], 0
-        else:
-            dictionarytot[key] = 0, dict2[key], 0
-            
-    for key in dict3:
-        if(key in dict1 and key in dict2):
-            dictionarytot[key] = dict1[key], dict2[key], dict3[key]
-        elif(key in dict1):
-            dictionarytot[key] = dict1[key], 0, dict3[key]
-        elif key in dict2:
-            dictionarytot[key] = 0, dict2[key], dict3[key]
-        else:
-            dictionarytot[key] = 0, 0, dict3[key]
+        try:
+            val2 = dict2[key]
+        except KeyError:
+            val2 = 0
 
-    dictionarytot = {k: np.array(v)+[eps,eps,eps] for k,v in dictionarytot.items()}
+        try:
+            val3 = dict3[key]
+        except KeyError:
+            val3 = 0
+
+        dictionarytot[key] = val1 + eps, val2 + eps, val3 + eps
 
     N1 = sum(dict1.values())
     N2 = sum(dict2.values())
@@ -117,16 +115,16 @@ if __name__ == '__main__':
     
     dictionarytot, frequenciestot = dict_freq_tot(dictionaryinf, dictionarypur, dictionarypar)
     
-    # print(dictionarytot)
+    # print(len(dictionarytot))
     
-    mat_occurencies =[]
+    mat_occurencies = []
     for k in dictionarytot:
         mat_occurencies.append( vcol(np.array(dictionarytot[k])))
         
     mat_occurencies = np.reshape(mat_occurencies, (np.array(mat_occurencies).shape[0], np.array(mat_occurencies).shape[1]))
     mat_occurencies = np.transpose(mat_occurencies)
     
-    mat_frequencies =[]
+    mat_frequencies = []
     for k in frequenciestot:
         mat_frequencies.append( vcol(np.array(frequenciestot[k])))
         
@@ -152,7 +150,7 @@ if __name__ == '__main__':
             L3 = 0
             # print(x)
             for xi in x.split(" "):
-                if(xi in dictionarytot.keys()):
+                if xi in dictionarytot.keys():
                     ind = list(dictionarytot).index(xi)
                     L1 += np.log(mat_frequencies[0,ind])
                     L2 += np.log(mat_frequencies[1,ind])
@@ -161,7 +159,6 @@ if __name__ == '__main__':
 
         check = [i for i in predicted_indices if i == cantiche[ii]]
         print(len(check)/len(predicted_indices))
-    #cazzi
 
    
     
