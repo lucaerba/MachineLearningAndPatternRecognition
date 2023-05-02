@@ -69,12 +69,10 @@ def dict_freq_tot(dict1, dict2, dict3):
             val1 = dict1[key]
         except KeyError:
             val1 = 0
-
         try:
             val2 = dict2[key]
         except KeyError:
             val2 = 0
-
         try:
             val3 = dict3[key]
         except KeyError:
@@ -99,6 +97,46 @@ def vrow(v):
     v = v.reshape((1, v.size))
     return v
 
+def evaluation(dict_test, eval, mat_freq):
+
+    cantiche = [0, 1, 2]
+    accuracies = []
+    for ii in cantiche:
+        predicted_indices = []
+        for x in eval[ii]:
+            L1 = 0
+            L2 = 0
+            L3 = 0
+            # print(x)
+            for xi in x.split(" "):
+                if xi in dict_test.keys():
+                    ind = list(dict_test).index(xi)
+                    L1 += np.log(mat_freq[0, ind])
+                    L2 += np.log(mat_freq[1, ind])
+                    L3 += np.log(mat_freq[2, ind])
+            predicted_indices.append(np.argmax([L1, L2, L3]))
+
+        check = [i for i in predicted_indices if i == cantiche[ii]]
+        accuracies.append(len(check) / len(predicted_indices))
+    return accuracies
+
+def matrices(dict_occ, dict_freq):
+    mat_occurencies = []
+    mat_frequencies = []
+
+    for k in dict_occ:
+        mat_occurencies.append(vcol(np.array(dict_occ[k])))
+
+    mat_occurencies = np.reshape(mat_occurencies, (np.array(mat_occurencies).shape[0], np.array(mat_occurencies).shape[1]))
+    mat_occurencies = np.transpose(mat_occurencies)
+
+    for k in dict_freq:
+        mat_frequencies.append(vcol(np.array(dict_freq[k])))
+
+    mat_frequencies = np.reshape(mat_frequencies, (np.array(mat_frequencies).shape[0], np.array(mat_frequencies).shape[1]))
+    mat_frequencies = np.transpose(mat_frequencies)
+    return mat_occurencies, mat_frequencies
+
 if __name__ == '__main__':
 
     # Load the tercets and split the lists in training and test lists
@@ -114,24 +152,13 @@ if __name__ == '__main__':
     dictionarypar, frequenciespar = dictionaryAndfreq(lPar_train)
     
     dictionarytot, frequenciestot = dict_freq_tot(dictionaryinf, dictionarypur, dictionarypar)
+
+    mat_occurencies, mat_frequencies = matrices(dictionarytot, frequenciestot)
+
+    eval = [lInf_evaluation, lPur_evaluation, lPar_evaluation]
     
     # print(len(dictionarytot))
-    
-    mat_occurencies = []
-    for k in dictionarytot:
-        mat_occurencies.append( vcol(np.array(dictionarytot[k])))
-        
-    mat_occurencies = np.reshape(mat_occurencies, (np.array(mat_occurencies).shape[0], np.array(mat_occurencies).shape[1]))
-    mat_occurencies = np.transpose(mat_occurencies)
-    
-    mat_frequencies = []
-    for k in frequenciestot:
-        mat_frequencies.append( vcol(np.array(frequenciestot[k])))
-        
-    mat_frequencies = np.reshape(mat_frequencies, (np.array(mat_frequencies).shape[0], np.array(mat_frequencies).shape[1]))
-    mat_frequencies = np.transpose(mat_frequencies)
-    
-    
+
     # print(mat_occurencies)
     #print(np.array(mat_occurencies).shape)
     # print(mat_frequencies)
@@ -140,26 +167,7 @@ if __name__ == '__main__':
     #print(np.array(list(scores)))
     # print(scores)
 
-    eval = [lInf_evaluation, lPur_evaluation, lPar_evaluation]
-    cantiche = [0, 1, 2]
-    for ii in cantiche:
-        predicted_indices = []
-        for x in eval[ii]:
-            L1 = 0
-            L2 = 0
-            L3 = 0
-            # print(x)
-            for xi in x.split(" "):
-                if xi in dictionarytot.keys():
-                    ind = list(dictionarytot).index(xi)
-                    L1 += np.log(mat_frequencies[0,ind])
-                    L2 += np.log(mat_frequencies[1,ind])
-                    L3 += np.log(mat_frequencies[2,ind])
-            predicted_indices.append(np.argmax([L1,L2,L3]))
-
-        check = [i for i in predicted_indices if i == cantiche[ii]]
-        print(len(check)/len(predicted_indices))
-
+    print(evaluation(dictionarytot, eval, mat_frequencies))
    
     
     
