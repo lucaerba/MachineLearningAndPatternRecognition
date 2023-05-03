@@ -124,18 +124,21 @@ def evaluation(dict_test, eval, mat_freq):
 def evaluation_bin(dict_test, eval, mat_freq):
     cantiche = [0,1,2]
     accuracies = []
-    predicted_indices = []
-    check = []
-    for x in eval[2]:
-        L = np.array([0., 0.])
-        for xi in x.split(" "):
-            if xi in dict_test.keys():
-                ind = list(dict_test).index(xi)
-                L[0] += np.log(mat_freq[cantiche[2], ind]) # I want to see if it belongs to this cantica
-                L[1] += np.log(mat_freq[cantiche[0], ind]) # this is the other cantica that I want to compare to
-        predicted_indices = np.append(predicted_indices, np.argmax([L]))
-    check = np.append(check, predicted_indices[predicted_indices == 0]) # put index=0 for the cantica considered
-    accuracies.append(len(check) / len(predicted_indices))
+    predicted_indices = {}
+    for i in cantiche:
+        for x in eval[i]:
+            L = np.array([0., 0.])
+            for xi in x.split(" "):
+                if xi in dict_test.keys():
+                    ind = list(dict_test).index(xi)
+                    L[0] += np.log(mat_freq[cantiche[i], ind]) # I want to see if it belongs to this cantica
+                    L[1] += np.log(mat_freq[cantiche[i-1], ind]) # this is the other cantica that I want to compare to
+            try:
+                predicted_indices[i] = np.append(predicted_indices[i], np.argmax([L]))
+            except KeyError:
+                predicted_indices[i] = np.argmax([L])
+        check = predicted_indices[i][predicted_indices[i] == 0] # put index=0 for the cantica considered
+        accuracies.append(len(check) / len(predicted_indices[i]))
 
     return accuracies, predicted_indices
 
