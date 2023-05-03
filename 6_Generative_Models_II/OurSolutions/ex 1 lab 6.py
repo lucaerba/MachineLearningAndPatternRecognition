@@ -98,27 +98,46 @@ def vrow(v):
     return v
 
 def evaluation(dict_test, eval, mat_freq):
-
     cantiche = [0, 1, 2]
     accuracies = []
+    predicted_indices = {}
     for ii in cantiche:
-        predicted_indices = []
         for x in eval[ii]:
+            L0 = 0
             L1 = 0
             L2 = 0
-            L3 = 0
-            # print(x)
             for xi in x.split(" "):
                 if xi in dict_test.keys():
                     ind = list(dict_test).index(xi)
-                    L1 += np.log(mat_freq[0, ind])
-                    L2 += np.log(mat_freq[1, ind])
-                    L3 += np.log(mat_freq[2, ind])
-            predicted_indices.append(np.argmax([L1, L2, L3]))
+                    L0 += np.log(mat_freq[0, ind])
+                    L1 += np.log(mat_freq[1, ind])
+                    L2 += np.log(mat_freq[2, ind])
+            try:
+                predicted_indices[ii] = np.append(predicted_indices[ii], np.argmax([L0, L1, L2]))
+            except KeyError:
+                predicted_indices[ii] = np.argmax([L0, L1, L2])
+        check = predicted_indices[ii][predicted_indices[ii] == ii]
+        accuracies.append(len(check) / len(predicted_indices[ii]))
 
-        check = [i for i in predicted_indices if i == cantiche[ii]]
-        accuracies.append(len(check) / len(predicted_indices))
-    return accuracies
+    return accuracies, predicted_indices
+
+def evaluation_bin(dict_test, eval, mat_freq):
+    cantiche = [0,1,2]
+    accuracies = []
+    predicted_indices = []
+    check = []
+    for x in eval[2]:
+        L = np.array([0., 0.])
+        for xi in x.split(" "):
+            if xi in dict_test.keys():
+                ind = list(dict_test).index(xi)
+                L[0] += np.log(mat_freq[cantiche[2], ind]) # I want to see if it belongs to this cantica
+                L[1] += np.log(mat_freq[cantiche[0], ind]) # this is the other cantica that I want to compare to
+        predicted_indices = np.append(predicted_indices, np.argmax([L]))
+    check = np.append(check, predicted_indices[predicted_indices == 0]) # put index=0 for the cantica considered
+    accuracies.append(len(check) / len(predicted_indices))
+
+    return accuracies, predicted_indices
 
 def matrices(dict_occ, dict_freq):
     mat_occurencies = []
@@ -127,13 +146,15 @@ def matrices(dict_occ, dict_freq):
     for k in dict_occ:
         mat_occurencies.append(vcol(np.array(dict_occ[k])))
 
-    mat_occurencies = np.reshape(mat_occurencies, (np.array(mat_occurencies).shape[0], np.array(mat_occurencies).shape[1]))
+    mat_occurencies = np.reshape(mat_occurencies,
+                                 (np.array(mat_occurencies).shape[0], np.array(mat_occurencies).shape[1]))
     mat_occurencies = np.transpose(mat_occurencies)
 
     for k in dict_freq:
         mat_frequencies.append(vcol(np.array(dict_freq[k])))
 
-    mat_frequencies = np.reshape(mat_frequencies, (np.array(mat_frequencies).shape[0], np.array(mat_frequencies).shape[1]))
+    mat_frequencies = np.reshape(mat_frequencies,
+                                 (np.array(mat_frequencies).shape[0], np.array(mat_frequencies).shape[1]))
     mat_frequencies = np.transpose(mat_frequencies)
     return mat_occurencies, mat_frequencies
 
@@ -156,6 +177,9 @@ if __name__ == '__main__':
     mat_occurencies, mat_frequencies = matrices(dictionarytot, frequenciestot)
 
     eval = [lInf_evaluation, lPur_evaluation, lPar_evaluation]
+
+    accuracies, predictions = evaluation(dictionarytot, eval, mat_frequencies)
+    accuracies_bin, predictions_bin = evaluation_bin(dictionarytot, eval, mat_frequencies)
     
     # print(len(dictionarytot))
 
@@ -167,7 +191,9 @@ if __name__ == '__main__':
     #print(np.array(list(scores)))
     # print(scores)
 
-    print(evaluation(dictionarytot, eval, mat_frequencies))
-   
-    
+    # print(accuracies)
+    # print(np.mean(accuracies))
+    # print(predictions)
+
+    print(accuracies_bin)
     
