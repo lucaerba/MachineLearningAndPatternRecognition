@@ -21,32 +21,39 @@ def split_db_2to1(D, L, seed=0):
     LTE = L[idxTest]
     return (DTR, LTR), (DTE, LTE)
 
-def J(w, b, DTR, LTR, l):
-    #first = l/2*np.square(np.linalg.norm(w))
-    #second = np.sum(np.logaddexp(0, -(2*LTR-1)*(np.transpose(w)*DTR+b)))*(1/len(DTR))
-     # Compute the regularizer term
-    reg_term = (l/2) * np.sum(np.power(w, 2))
+def vrow(x):
+    x = x.reshape((1, x.size))
+    return x
+def vcol(x):
+    x = x.reshape((x.size, 1))
+    return x
 
-    # Compute the logistic loss term
-    n = len(DTR)
-    loss_term = 0
-    for i in range(n):
-        loss_term += np.log(1 + np.exp(-(2 * LTR[i] - 1) * (np.dot(np.transpose(DTR)[i], np.transpose(w)) + b) ))
-    loss_term = loss_term*1/n
-    # Compute the full objective function
-    objective = reg_term + loss_term
-    return objective
-
-def logreg_obj(v, DTR, LTR, l):
-    w, b = v[0:-1], v[-1]
-    return J(w, b, DTR, LTR, l)
-
+def logreg_obj_wrap(DTR, LTR, l):
+    def logreg_obj(v):
+        w, b = v[0:-1], v[-1]
+        first_part = 0.5*l*(np.linalg.norm(w))**2
+        second_part = 0
+        for i in range(DTR.shape[1]):
+            second_part += np.logaddexp(0, -(2*LTR[i]-1)*(np.dot(DTR.T[i],w) + b))
+        second_part = second_part / DTR.shape[1]
+        logreg_obj = first_part + second_part
+        return logreg_obj
+    return logreg_obj
 
 D, L = load_iris_binary()
 (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
-print(DTR)
-(x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj, np.zeros(DTR.shape[0] + 1), approx_grad = True, args=(DTR, LTR, 1), iprint=1, maxfun=15000, maxiter=1000)
-print(x)
-print(f)
-print(d)
 
+lambdas = [1E-6, 1E-3, 1E-1, 1]
+for l in lambdas:
+    logreg_obj = logreg_obj_wrap(DTR, LTR, l)
+    # print(DTR)
+    (x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj,
+                                          np.zeros(DTR.shape[0] + 1),
+                                          approx_grad = True, maxfun=15000, maxiter=1000)
+    # print(x)
+    print('lamda: {} -- minimum: {}'.format(l,f))
+    # print(d)
+    s = np.dot(x[0:-1].T,DTE) + x[-1]
+    LP = [1 if s[i]>0 else 0 for i in range(DTE.shape[1])]
+    check = LP == LTE
+    print(1-len(check[check == True]) / len(LTE))
