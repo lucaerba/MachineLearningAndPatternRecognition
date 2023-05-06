@@ -37,10 +37,10 @@ def J(w, b, DTR, LTR, l):
     # Compute the full objective function
     objective = reg_term + loss_term
     return objective
-w_f, b_f = [], 0
+
 def logreg_obj(v, DTR, LTR, l):
     w, b = v[0:-1], v[-1]
-    w_f, b_f = w, b
+
     return J(w, b, DTR, LTR, l)
 #-----------------------------------------#
 D, L = load_iris_binary()
