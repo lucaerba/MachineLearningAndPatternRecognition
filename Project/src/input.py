@@ -3,13 +3,6 @@ import numpy as np
 testinput = "../Data/Test.txt"
 traininput = "../Data/Train.txt"
 
-def load_iris_binary():
-    D, L = sklearn.datasets.load_iris()['data'].T, sklearn.datasets.load_iris()['target']
-    D = D[:, L != 0] # We remove setosa from D
-    L = L[L!=0] # We remove setosa from L
-    L[L==2] = 0 # We assign label 0 to virginica (was label 2)
-    return D, L
-
 def split_db_2to1(D, L, seed=0):
     nTrain = int(D.shape[1]*2.0/3.0)
     np.random.seed(seed)
@@ -21,14 +14,6 @@ def split_db_2to1(D, L, seed=0):
     LTR = L[idxTrain]
     LTE = L[idxTest]
     return (DTR, LTR), (DTE, LTE)
-
-def vcol(v):
-    v = v.reshape((v.size, 1))
-    return v
-
-def vrow(v):
-    v = v.reshape((1, v.size))
-    return v
 
 def load(file):
     attributes = []
