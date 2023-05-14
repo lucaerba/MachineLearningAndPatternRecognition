@@ -59,17 +59,14 @@ def binary_logistic(DTR, LTR, DTE, LTE):
     lambdas = [1E-6, 1E-3, 1E-1, 1]
     for l in lambdas:
         logreg_obj = logreg_obj_wrap(DTR, LTR, l)
-        # print(DTR)
         (x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj,
                                               np.zeros(DTR.shape[0] + 1),
                                               approx_grad=True, maxfun=15000, maxiter=1000)
-        # print(x)
-        print('lamda: {} -- minimum: {}'.format(l, f))
-        # print(d)
+        print('lamda: {} -- minimum: {:.3e}'.format(l, f))
         s = np.dot(x[0:-1].T, DTE) + x[-1]
         LP = np.where(s > 0, 1, 0)
         check = LP == LTE
-        print('err: {}'.format(1 - len(check[check == True]) / len(LTE)))
+        print('err: {:.3f}'.format(1 - len(check[check == True]) / len(LTE)))
 
 def multiclass_logistic(DTR, LTR, DTE, LTE, N_classes):
     lambdas = [1E-6, 1E-3, 1E-1, 1]
@@ -78,14 +75,14 @@ def multiclass_logistic(DTR, LTR, DTE, LTE, N_classes):
         (x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj,
                                               np.zeros((DTR.shape[0] + 1, N_classes)),
                                               approx_grad=True, maxfun=15000, maxiter=1000)
-        print('lamda: {} -- minimum: {}'.format(l, f))
+        print('lamda: {} -- minimum: {:.3e}'.format(l, f))
         x = np.reshape(x, (DTR.shape[0] + 1, N_classes))
         b = x[-1, :]
         w = x[0:-1, :]
         s = np.dot(w.T, DTE) + np.array(b).reshape(3, 1)
         LP = np.argmax(s, axis=0)
         check = LP == LTE
-        print('err: {}'.format(1 - len(check[check == True]) / len(LTE)))
+        print('err: {:.3f}'.format(1 - len(check[check == True]) / len(LTE)))
 
 
 D, L = load_iris_binary()
