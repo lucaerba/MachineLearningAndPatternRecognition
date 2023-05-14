@@ -12,7 +12,6 @@ def DCF(FN, FP):
 
 def main():
     D, L = input.load(input.traininput)
-    (DTR, LTR), (DTE, LTE) = input.split_db_2to1(D, L)
 
     #model.logreg_wrapper(DTR, LTR, DTE, LTE)
     model.MVG_kfold_wrapper(D, L)

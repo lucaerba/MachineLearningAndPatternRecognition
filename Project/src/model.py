@@ -1,7 +1,5 @@
 import scipy as sp
 import numpy as np    
-    
-    
 
 def vcol(v):
     v = v.reshape((v.size, 1))
@@ -85,41 +83,41 @@ def mu_and_sigma_ML(x):
 def loglikelihood(x, mu_ML, C_ML):
     l = np.sum(logpdf_GAU_ND(x, mu_ML, C_ML))
     return l
-       
+
+prior_prob = np.log(np.array([[0.1],[0.9]]))
+N_classes = 2
 def score_matrix_MVG(DTR, LTR, DTE):
     mu_ML = {}
     C_ML = {}
     S = []
-    P_C = np.array([[1 / 10],[ 9 / 10]])
 
-    for i in range(2):
+    for i in range(N_classes):
         D_class = DTR[:, LTR == i]
         mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class)
 
-    for i in range(2):
+    for i in range(N_classes):
         D_class = DTE
-        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
+        like = vrow(np.array((logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
         S.extend(like)
-    SJoint = np.array(S) * P_C
+    SJoint = np.array(S) + prior_prob
     return SJoint
 
 def score_matrix_NaiveBayes(DTR, LTR, DTE):
     mu_ML = {}
     C_ML = {}
     S = []
-    P_C = np.array([[1 / 10],[ 9 / 10]])
 
-    for i in range(2):
+    for i in range(N_classes):
         D_class = DTR[:, LTR == i]
         mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class)
         C_ML[i] = C_ML[i] * np.eye(len(C_ML[i]))
 
-    for i in range(2):
+    for i in range(N_classes):
         D_class = DTE
-        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
+        like = vrow(np.array((logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
         S.extend(like)
 
-    Sjoint = np.array(S) * P_C
+    Sjoint = np.array(S) + prior_prob
     return Sjoint
 
 def score_matrix_TiedMVG(DTR, LTR, DTE):
@@ -127,23 +125,22 @@ def score_matrix_TiedMVG(DTR, LTR, DTE):
     C_ML = {}
     D_class = {}
 
-    for i in range(2):
+    for i in range(N_classes):
         D_class[i] = DTR[:, LTR == i]
         mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class[i])
 
     N_c = np.array([v.shape[1] for k, v in D_class.items()])
     sigma = [v for k, v in C_ML.items()]
-    sigma_star = float(np.sum(N_c)) ** -1 * np.dot(vrow(N_c), np.reshape(sigma, (2, 100)))
-    sigma_star = np.reshape(sigma_star, (10, 10))
+    sigma_star = float(np.sum(N_c)) ** -1 * np.dot(vrow(N_c), np.reshape(sigma, (N_classes, DTR.shape[0]**2)))
+    sigma_star = np.reshape(sigma_star, (DTR.shape[0], DTR.shape[0]))
     S = []
-    P_C = np.array([[1 / 10],[ 9 / 10]])
 
-    for i in range(2):
+    for i in range(N_classes):
         D_class = DTE
-        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
+        like = vrow(np.array((logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
         S.extend(like)
 
-    SJoint = np.array(S) * P_C
+    SJoint = np.array(S) + prior_prob
     return SJoint
 
 def score_matrix_TiedNaiveBayes(DTR, LTR, DTE):
@@ -151,36 +148,30 @@ def score_matrix_TiedNaiveBayes(DTR, LTR, DTE):
     C_ML = {}
     D_class = {}
 
-    for i in range(2):
+    for i in range(N_classes):
         D_class[i] = DTR[:, LTR == i]
         mu_ML[i], C_ML[i] = mu_and_sigma_ML(D_class[i])
         C_ML[i] = C_ML[i] * np.eye(len(C_ML[i]))
 
     N_c = np.array([v.shape[1] for k, v in D_class.items()])
     sigma = [v for k, v in C_ML.items()]
-    sigma_star = float(np.sum(N_c)) ** -1 * np.dot(vrow(N_c), np.reshape(sigma, (2, 100)))
-    sigma_star = np.reshape(sigma_star, (10, 10))
+    sigma_star = float(np.sum(N_c)) ** -1 * np.dot(vrow(N_c), np.reshape(sigma, (N_classes, DTR.shape[0]**2)))
+    sigma_star = np.reshape(sigma_star, (DTR.shape[0], DTR.shape[0]))
     S = []
-    P_C = np.array([[1 / 10],[ 9 / 10]])
 
-    for i in range(2):
+    for i in range(N_classes):
         D_class = DTE
-        like = vrow(np.array(np.exp(logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
+        like = vrow(np.array((logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
         S.extend(like)
 
-    SJoint = np.array(S) * P_C
+    SJoint = np.array(S) + prior_prob
     return SJoint
 
 def predicted_labels_and_accuracy(S, LTE):
-    SMarginal = vrow(S.sum(0))
-    #print(S[0][1:10])
-    #print("-------------")
-    #print(SMarginal[0][1:10])
-    SPost = S/ SMarginal
-    #print(SPost[0][1:30])
+    SMarginal = vrow(sp.special.logsumexp(S, axis=0))
+    SPost = np.exp(S - SMarginal)
     predicted_labels = np.argmax(SPost, axis=0)
     check = predicted_labels == LTE
-    #print(predicted_labels)
     acc = len(check[check == True]) / len(LTE)
     return predicted_labels, acc
 
@@ -201,21 +192,20 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
         LTR = L[idxTrain]
         LTE = L[idxTest]
         Sjoint = func(DTR, LTR, DTE)
-        #print(Sjoint[0][1:10])
         pred, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
-        #print(pred)
         err.append(1-acc_i)
-    return np.mean(err)
-        
+    return np.min(err), pred
+
+K = 5
 def MVG_kfold_wrapper(D, L):
-    print("MVG err: "+str(Kfold_cross_validation(D, L, 6, func=score_matrix_MVG)))
+    print("MVG err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_MVG)))
     
 def NB_kfold_wrapper(D, L):
-    print("NB err: "+str(Kfold_cross_validation(D, L, 6, func=score_matrix_NaiveBayes)))
+    print("NB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_NaiveBayes)))
     
 def TMVG_kfold_wrapper(D, L):
-    print("TMVG err: "+str(Kfold_cross_validation(D, L, 6, func=score_matrix_TiedMVG)))
+    print("TMVG err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedMVG)))
     
 def TNB_kfold_wrapper(D, L):
-    print("TNB err: "+str(Kfold_cross_validation(D, L, 4, func=score_matrix_TiedNaiveBayes)))
+    print("TNB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedNaiveBayes)))
     

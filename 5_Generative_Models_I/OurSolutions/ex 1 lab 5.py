@@ -174,7 +174,7 @@ def score_matrix_TiedNaiveBayes(DTR, LTR, DTE):
     sigma_star = float(np.sum(N_c)) ** -1 * np.dot(vrow(N_c), np.reshape(sigma, (3, 16)))
     sigma_star = np.reshape(sigma_star, (4, 4))
     S = []
-    P_C = 1 / 3
+    P_C = 1/3
 
     for i in range(3):
         D_class = DTE
@@ -224,7 +224,7 @@ def Kfold_cross_validation(D, L, K, seed=1):
         DTE = D[:, idxTest]
         LTR = L[idxTrain]
         LTE = L[idxTest]
-        Sjoint = score_matrix_MVG(DTR, LTR, DTE)
+        Sjoint = score_matrix_TiedMVG(DTR, LTR, DTE)
         pred, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
         err.append(1-acc_i)
     return np.mean(err)
