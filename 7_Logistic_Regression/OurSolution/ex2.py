@@ -84,15 +84,15 @@ def multiclass_logistic(DTR, LTR, DTE, LTE, N_classes):
         check = LP == LTE
         print('err: {:.3f}'.format(1 - len(check[check == True]) / len(LTE)))
 
-
-D, L = load_iris_binary()
-(DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
-binary_logistic(DTR, LTR, DTE, LTE)
-print('---------------------')
-print('---------------------')
-D, L = load_iris()
-(DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
-N_classes = 3
-multiclass_logistic(DTR, LTR, DTE, LTE, N_classes)
+if __name__ == '__main__':
+    D, L = load_iris_binary()
+    (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
+    binary_logistic(DTR, LTR, DTE, LTE)
+    print('---------------------')
+    print('---------------------')
+    D, L = load_iris()
+    (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
+    N_classes = 3
+    multiclass_logistic(DTR, LTR, DTE, LTE, N_classes)
 
 
