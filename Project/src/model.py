@@ -32,28 +32,45 @@ def logreg_obj(v, DTR, LTR, l):
     return J(w, b, DTR, LTR, l)
 #-----------------------------------------#
 
-def logreg_wrapper(DTR, LTR, DTE, LTE):
+def logreg_wrapper(D,L,seed=0):
     lam = [10**-6, 10**-3, 10**-2, 10**-1, 1, 100, 1000, 10000]
     for l in lam:
-        (x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj, np.zeros(DTR.shape[0] + 1), approx_grad = True, args=(DTR, LTR, l))
+        nSamp = int(D.shape[1] / K)
+        residuals = D.shape[1] - nSamp * K
+        sub_arr = np.ones((K, 1)) * nSamp
+        if residuals != 0:
+            sub_arr = np.array([int(x + 1) for x in sub_arr[:residuals]] + [int(x) for x in sub_arr[residuals:]])
+        np.random.seed(seed)
+        idx = np.random.permutation(D.shape[1])
+        err = []
+        S_sc = []
+        for i in range(K):
+            idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
+            idxTrain = [x for x in idx if x not in idxTest]
+            DTR = D[:, idxTrain]
+            DTE = D[:, idxTest]
+            LTR = L[idxTrain]
+            LTE = L[idxTest]
+            (x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj, np.zeros(DTR.shape[0] + 1), approx_grad = True, args=(DTR, LTR, l))
         
-        print("lam " + str(l) + " min:" + str(f))
+        # print("lam " + str(l) + " min:" + str(f))
         
         #print(x,d)
-        S = np.dot(x[0:-1].T, DTE) + x[-1]
+            S = np.dot(x[0:-1].T, DTE) + x[-1]
         #print(S)    
-        S_sc = [1 if S[i]>0 else 0 for i in range(len(DTE.T))]
+            S_sc.append([1 if S[i]>0 else 0 for i in range(len(DTE.T))])
         #print(S_sc)
         
-        check = S_sc==LTE
-        check2 = [True if (not check[i] and S_sc[i] == 0) else False for i in range(len(DTE.T))]
-        check2 = [val for val in check2 if val == True]
-        check3 = [True if (not check[i] and S_sc[i] == 1) else False for i in range(len(DTE.T))]
-        check3 = [val for val in check3 if val == True]
-        
-        print(1-len(check[check==True])/len(LTE))
-        print("Test len:"+str(len(LTE))+" FN:"+str(len(check2))+ " FP:"+ str(len(check3)))
-        print(S_sc)
+            check = S_sc[i]==LTE
+            # check2 = [True if (not check[i] and S_sc[i] == 0) else False for i in range(len(DTE.T))]
+            # check2 = [val for val in check2 if val == True]
+            # check3 = [True if (not check[i] and S_sc[i] == 1) else False for i in range(len(DTE.T))]
+            # check3 = [val for val in check3 if val == True]
+
+            err.append(1 - len(check[check == True]) / len(LTE))
+            # print("Test len:"+str(len(LTE))+" FN:"+str(len(check2))+ " FP:"+ str(len(check3)))
+    return (np.min(err)),(S_sc[np.argmin(err)])
+
         
 def logpdf_GAU_ND(X, mu, C):
     XC = X - mu
@@ -211,4 +228,6 @@ def TMVG_kfold_wrapper(D, L):
     
 def TNB_kfold_wrapper(D, L):
     print("TNB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedNaiveBayes)))
-    
+
+def logreg_kfold_wrapper(D, L):
+    print(logreg_wrapper(D,L))
