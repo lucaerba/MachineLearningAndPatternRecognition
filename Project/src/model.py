@@ -52,7 +52,8 @@ def logreg_wrapper(DTR, LTR, DTE, LTE):
         check3 = [val for val in check3 if val == True]
         
         print(1-len(check[check==True])/len(LTE))
-        print("Test len:"+str(len(LTE))+" FN:"+str(len(check2))+ " FP:"+ str(len(check3))) 
+        print("Test len:"+str(len(LTE))+" FN:"+str(len(check2))+ " FP:"+ str(len(check3)))
+        print(S_sc)
         
 def logpdf_GAU_ND(X, mu, C):
     XC = X - mu
@@ -184,6 +185,7 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
     np.random.seed(seed)
     idx = np.random.permutation(D.shape[1])
     err = []
+    pred = []
     for i in range(K):
         idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i+1]))]
         idxTrain = [x for x in idx if x not in idxTest]
@@ -192,9 +194,10 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
         LTR = L[idxTrain]
         LTE = L[idxTest]
         Sjoint = func(DTR, LTR, DTE)
-        pred, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
+        pred_i, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
+        pred.append(pred_i)
         err.append(1-acc_i)
-    return np.min(err), pred
+    return np.min(err), pred[np.argmin(err)]
 
 K = 5
 def MVG_kfold_wrapper(D, L):
