@@ -107,10 +107,24 @@ def Bayes_error_plots(llr,labels):
     plt.xlim([-3, 3])
     return plt.show()
 
+def optimal_class_multiclass(f_ll,f_lab,P,C,dim):
+    a = np.sum(f_ll*vcol(P),axis=0)
+    post = f_ll * vcol(P)/a
+    C_all = np.dot(C,post)
+    optimal_class = np.argmin(C_all,axis=0)
+    DCF_dummy = np.min(np.dot(C, P))
+    confusion_matrix = np.zeros((dim, dim))
+    for ii in range(len(optimal_class)):
+        confusion_matrix[optimal_class[ii]][f_lab[ii]] += 1
+    return confusion_matrix
+
 f_labels = np.load('../Data/commedia_labels_infpar.npy') # 1=inferno -- 0=paradiso
 f_labels_eps1 = np.load('../Data/commedia_labels_infpar_eps1.npy')
 f_llr = np.load('../Data/commedia_llr_infpar.npy')
 f_llr_eps1 = np.load('../Data/commedia_llr_infpar_eps1.npy')
+
+f_ll_multiclass = np.load('../Data/commedia_ll.npy')
+f_labels_multiclass = np.load('../Data/commedia_labels.npy')
 
 if __name__ == '__main__':
 
@@ -138,4 +152,10 @@ if __name__ == '__main__':
 
     # print(Bayes_error_plots(f_llr,f_labels))
 
-    print(Bayes_error_plots([f_llr,f_llr_eps1],[f_labels,f_labels_eps1]))
+    # print(Bayes_error_plots([f_llr,f_llr_eps1],[f_labels,f_labels_eps1]))
+
+    P = np.array([.3,.4,.3])
+    C = np.array([[0,1,2],
+         [1,0,1],
+         [2,1,0]])
+    print(optimal_class_multiclass(f_ll_multiclass,f_labels_multiclass,P,C,3))
