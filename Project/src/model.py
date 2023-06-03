@@ -44,6 +44,8 @@ def logreg_wrapper(D,L,seed=0):
         idx = np.random.permutation(D.shape[1])
         err = []
         S_sc = []
+        err_l_min = []
+        pred_l_min = []
         for i in range(K):
             idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
             idxTrain = [x for x in idx if x not in idxTest]
@@ -69,7 +71,11 @@ def logreg_wrapper(D,L,seed=0):
 
             err.append(1 - len(check[check == True]) / len(LTE))
             # print("Test len:"+str(len(LTE))+" FN:"+str(len(check2))+ " FP:"+ str(len(check3)))
-    return (np.min(err)),(S_sc[np.argmin(err)])
+        print(l)
+        err_l_min.append(np.min(err))
+        pred_l_min.append(S_sc[np.argmin(err)])
+        
+    return (err_l_min),(pred_l_min)
 
         
 def logpdf_GAU_ND(X, mu, C):
@@ -197,10 +203,12 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
     nSamp = int(D.shape[1]/K)
     residuals = D.shape[1] - nSamp*K
     sub_arr = np.ones((K, 1)) * nSamp
+    
     if residuals != 0:
         sub_arr = np.array([int(x+1) for x in sub_arr[:residuals]] + [int(x) for x in sub_arr[residuals:]])
     np.random.seed(seed)
     idx = np.random.permutation(D.shape[1])
+    
     err = []
     pred = []
     for i in range(K):
@@ -214,7 +222,8 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
         pred_i, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
         pred.append(pred_i)
         err.append(1-acc_i)
-    return np.min(err), pred[np.argmin(err)]
+        
+    return np.min(err),pred[np.argmin(err)]
 
 K = 5
 def MVG_kfold_wrapper(D, L):
