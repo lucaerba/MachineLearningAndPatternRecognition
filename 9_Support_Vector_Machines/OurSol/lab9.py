@@ -19,34 +19,41 @@ def load_iris_binary(K=1):
     return D, L
 
 def matrix_H(D,label):
-    z = np.where(label == 0,1,0)
+    z = vcol(np.where(label == 0,1,-1))
     G = np.dot(D.T,D)
-    H = np.dot(z.T,z)*G
+    H = np.dot(z,z.T)*G
     return H
 
-def L_wrap(D,H):
+def linear_SVM(D,label,H):
     def L_and_gradL(alpha):
-        alpha = np.reshape(alpha, (D.shape[1],1))
-        L_d = 0.5*alpha.T*np.dot(H,alpha.T) - alpha.T*np.ones((1,D.shape[1]))
-        grad_L = np.dot(H,alpha.T) - 1
-        grad_L = np.reshape(grad_L, (D.shape[1],))
-        return L_d, grad_L
-    return L_and_gradL
+        alpha = np.reshape(alpha, (D.shape[1], 1))
+        L_d = 0.5 * np.dot(alpha.T, np.dot(H, alpha)) - alpha.sum(0)
+        return L_d
 
-def linear_SVM(D,H):
+    def grad(alpha):
+        grad_L = np.dot(H, alpha) - 1
+        grad_L = np.reshape(grad_L, (D.shape[1],))
+        return grad_L
+
+    z = np.where(label == 0, 1, -1)
     C = [.1,1,10]
-    L_d, grad_L = L_wrap(D,H)
     for c in C:
-        (x,f,d) = sp.optimize.fmin_l_bfgs_b(L_d,
-                                            np.zeros((1,D.shape[1])),
-                                            fprime=grad_L,
+        (x,f,d) = sp.optimize.fmin_l_bfgs_b(L_and_gradL,
+                                            np.zeros((D.shape[1],1)),
+                                            approx_grad=False,
+                                            fprime=grad,
                                             bounds=[(0, c) for _ in range(D.shape[1])],
-                                            maxfun=15000, maxiter=1000)
-        print(x)
+                                            maxfun=15000, maxiter=1000,
+                                            factr=1)
         print(f)
-        print(d)
+        w = np.dot(x*z,D.T)
+        scores = np.dot(w,D)
+        print(scores)
+
+
 
 if __name__ == '__main__':
     D,L = load_iris_binary()
     H = matrix_H(D,L)
-    linear_SVM(D,H)
+    linear_SVM(D,L,H)
+

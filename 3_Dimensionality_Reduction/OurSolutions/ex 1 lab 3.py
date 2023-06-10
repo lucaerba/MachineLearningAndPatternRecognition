@@ -41,7 +41,6 @@ P = U[:, ::-1][:, 0:m] # retrieve m leading eigenvectors
 
 DP = np.dot(P.T, D) # we apply the projection
 
-print(DP - PCA(D,2))
 
 DP0 = [DP[0][0:50], DP[1][0:50]]
 DP1 = [DP[0][50:100], DP[1][50:100]]
@@ -51,4 +50,4 @@ plt.figure()
 plt.scatter(DP0[0], DP0[1])
 plt.scatter(DP1[0], DP1[1])
 plt.scatter(DP2[0], DP2[1])
-plt.show()
+# plt.show()
