@@ -9,6 +9,44 @@ def vrow(v):
     v = v.reshape((1, v.size))
     return v
 
+def PCA(D,m): # m = leading eigenvectors
+    N = len(D)
+    mu = D.mean(1)
+    DC = D - vcol(mu)
+    C = N ** -1 * np.dot(DC, DC.T)
+    s, U = np.linalg.eigh(C)
+    P = U[:, ::-1][:, 0:m]
+    DP = np.dot(P.T, D)
+    return DP
+
+def LDA(D,L,m,N_classes = 2):
+    N = len(D[0])
+    S_W = 0
+    S_B = 0
+    mu = np.array(np.mean(D, 1))
+
+    for i in range(N_classes):
+        D_class = D[:, L == i]
+        n_c = len(D_class[0])
+        mu_class = np.array(np.mean(D_class, 1))
+        DC_class = D_class - vcol(mu_class)
+        C_class = n_c ** -1 * np.dot(DC_class, DC_class.T)
+
+        S_W += C_class * n_c
+        S_B += n_c * np.dot(vcol(mu_class) - vcol(mu), (vcol(mu_class) - vcol(mu)).T)
+    S_W = S_W / N
+    S_B = S_B / N
+
+    s, U = sp.linalg.eigh(S_B, S_W)
+    W = U[:, ::-1][:, 0:m]
+
+    UW, _, _ = np.linalg.svd(W)
+    U = UW[:, 0:m]
+
+    DP = np.dot(W.T, D)
+
+    return DP
+
 def J(w, b, DTR, LTR, l):
     #first = l/2*np.square(np.linalg.norm(w))
     #second = np.sum(np.logaddexp(0, -(2*LTR-1)*(np.transpose(w)*DTR+b)))*(1/len(DTR))

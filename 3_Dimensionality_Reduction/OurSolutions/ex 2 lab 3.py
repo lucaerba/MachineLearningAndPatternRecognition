@@ -33,6 +33,34 @@ def load(file):
 
     return np.hstack(attributes), np.array((fam_list))
 
+def LDA(D,m,N_classes = 2):
+    N = len(D[0])
+    S_W = 0
+    S_B = 0
+    mu = np.array(np.mean(D, 1))
+
+    for i in range(N_classes):
+        D_class = D[:, L == i]
+        n_c = len(D_class[0])
+        mu_class = np.array(np.mean(D_class, 1))
+        DC_class = D_class - vcol(mu_class)
+        C_class = n_c ** -1 * np.dot(DC_class, DC_class.T)
+
+        S_W += C_class * n_c
+        S_B += n_c * np.dot(vcol(mu_class) - vcol(mu), (vcol(mu_class) - vcol(mu)).T)
+    S_W = S_W / N
+    S_B = S_B / N
+
+    s, U = sp.linalg.eigh(S_B, S_W)
+    W = U[:, ::-1][:, 0:m]
+
+    UW, _, _ = np.linalg.svd(W)
+    U = UW[:, 0:m]
+
+    DP = np.dot(W.T, D)
+
+    return DP
+
 m = 2 # number of leading eigenvectors
 D, L = load(input_file)
 N = len(D[0])

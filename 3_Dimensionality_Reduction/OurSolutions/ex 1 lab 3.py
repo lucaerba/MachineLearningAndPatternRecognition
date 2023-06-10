@@ -1,9 +1,20 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+
 def vcol(v):
     v = v.reshape((v.size, 1))
     return v
+
+def PCA(D,m):
+    N = len(D)
+    mu = D.mean(1)
+    DC = D - vcol(mu)
+    C = N ** -1 * np.dot(DC, DC.T)
+    s, U = np.linalg.eigh(C)
+    P = U[:, ::-1][:, 0:m]
+    DP = np.dot(P.T, D)
+    return DP
 
 input_file = sys.argv[1]
 D = []
@@ -29,6 +40,8 @@ s, U = np.linalg.eigh(C) # eigenvalues and eigenvectors in descending order
 P = U[:, ::-1][:, 0:m] # retrieve m leading eigenvectors
 
 DP = np.dot(P.T, D) # we apply the projection
+
+print(DP - PCA(D,2))
 
 DP0 = [DP[0][0:50], DP[1][0:50]]
 DP1 = [DP[0][50:100], DP[1][50:100]]
