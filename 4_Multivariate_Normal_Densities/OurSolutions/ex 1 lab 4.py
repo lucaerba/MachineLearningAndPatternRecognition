@@ -33,18 +33,12 @@ def mu_and_sigma_ML(x):
     N = x.shape[1]
     M = x.shape[0]
 
-    mu_ML = []
-    sigma_ML = []
+    mu_ML = np.mean(x)
+    x_cent = x - [mu_ML] * M
 
-    for i in range(M):
-        mu_ML.append(np.sum(x[i,:]) / N)
+    sigma_ML = 1/N * np.dot(x_cent,x_cent.T)
 
-    x_cent = x - np.reshape(mu_ML, (M,1))
-    for i in range(M):
-        for j in range(M):
-            sigma_ML.append(np.dot(x_cent[i,:],x_cent[j,:].T) / N)
-
-    return np.vstack(mu_ML), np.reshape(sigma_ML, (M,M))
+    return mu_ML, sigma_ML
 
 def loglikelihood(x, mu_ML, C_ML):
     l = np.sum(logpdf_GAU_ND(x, mu_ML, C_ML))
@@ -54,14 +48,14 @@ plt.figure()
 XPlot = np.linspace(-8, 12, 1000)
 m = np.ones((1,1)) * 1.0
 C = np.ones((1,1)) * 2.0
-pdfSol = vcol(np.load('llGAU.npy'))
+# pdfSol = vcol(np.load('llGAU.npy'))
 pdfGau = logpdf_GAU_ND(vrow(XPlot), m, C)
 plt.plot(XPlot.ravel(), np.exp(pdfGau))
 # plt.plot(XPlot.ravel(), np.exp(pdfSol))
-error = np.abs(pdfSol - pdfGau)
-plt.figure()
+# error = np.abs(pdfSol - pdfGau)
+# plt.figure()
 # plt.plot(XPlot.ravel(), error)
-# plt.show()
+plt.show()
 # print(error.max())
 
 XND = np.load('XND.npy')
