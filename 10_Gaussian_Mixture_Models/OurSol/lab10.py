@@ -245,7 +245,7 @@ if __name__ == '__main__':
     # gmm_split = LBG_gmm(D,4)
     # print(gmm_split)
     D,L = load_iris()
-    print(Kfold_cross_validation(D,L,5,G=8))
+    print(Kfold_cross_validation(D,L,5,G=4))
 
     # plt.figure()
     # counts, bins = np.histogram(D_1d,bins=30)
