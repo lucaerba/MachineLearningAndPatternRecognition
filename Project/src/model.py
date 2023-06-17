@@ -1,6 +1,6 @@
 import scipy as sp
 import numpy as np    
-
+import threading
 def vcol(v):
     v = v.reshape((v.size, 1))
     return v
@@ -102,13 +102,8 @@ def logreg_wrapper(D,L,seed=0):
         #print(S_sc)
         
             check = S_sc[i]==LTE
-            # check2 = [True if (not check[i] and S_sc[i] == 0) else False for i in range(len(DTE.T))]
-            # check2 = [val for val in check2 if val == True]
-            # check3 = [True if (not check[i] and S_sc[i] == 1) else False for i in range(len(DTE.T))]
-            # check3 = [val for val in check3 if val == True]
 
             err.append(1 - len(check[check == True]) / len(LTE))
-            # print("Test len:"+str(len(LTE))+" FN:"+str(len(check2))+ " FP:"+ str(len(check3)))
         # print(l)
         err_l_min.append(np.min(err))
         pred_l_min.append(S_sc[np.argmin(err)])
@@ -258,86 +253,44 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
 
 ############################## SVM ##############################
 
-def matrix_H(D, label):
-    z = vcol(np.where(label == 0, 1, -1))
-    G = np.dot(D.T, D)
-    H = np.dot(z, z.T) * G
-    return H
 
+#TODO eps or c after every kern fun
 
-def Jw(w, d, z, c):
-    first = 0.5 * np.linalg.norm(w) ** 2
-
-    second = np.sum(np.maximum(0, 1 - z * np.dot(d.T, w)))
-
-    return first + c * second
-
-
-def linear_SVM(D, label, c, H):
-    def L_and_gradL(alpha):
-        L_d = 0.5 * np.dot(alpha.T, np.dot(H, alpha)) - np.dot(alpha, np.ones(np.shape(alpha)[0]))
-        return L_d
-
-    def grad(alpha):
-        grad_L = np.dot(H, alpha) - np.ones(D.shape[1])
-        return np.reshape(grad_L, (D.shape[1],))
-
-    z = np.where(label == 0, 1, -1)
-    # print(z)
-
-    (x, f, d) = sp.optimize.fmin_l_bfgs_b(L_and_gradL,
-                                          np.zeros((D.shape[1], 1)),
-                                          approx_grad=False,
-                                          fprime=grad,
-                                          bounds=[(0, c) for _ in range(D.shape[1])],
-                                          maxfun=15000, maxiter=100000,
-                                          factr=1.0)
-
-    w = np.dot(D, x * z)
-
-    scores = np.dot(w.T, D)
-
-    check = np.where(scores > 0, 1, -1) == z
-
-    print(str(1 - len(check[check == True]) / len(z)))
-    print(
-        "c = " + str(c) + " - (" + str(Jw(w, D, z, c)) + ", " + str(-f) + ") - duality gap: " + str(Jw(w, D, z, c) + f))
-
-
-c_my = 0
-d_my = 2
-g_my = 1
+d = 2
+gamma = 2
 eps = 0
 
+def set_d(myd):
+    print(d)
+    d = myd 
+        
+def set_g(myg):
+    gamma = myg
+        
+def polynomial_kernel(x1, x2):
+    return (np.dot(x1.T, x2) + 1) ** d + eps
 
-def polynomial_kernel(x1, x2, c=c_my, d=d_my):
-    c = c_my
-    d = d_my
-    return (np.dot(x1.T, x2) + c) ** d + eps
-
-
-def rbf_kernel(x1, x2, gamma=g_my):
-    gamma = g_my
+def rbf_kernel(x1, x2):
     pairwise_dist = np.linalg.norm(x1 - x2) ** 2
     return np.exp(-gamma * pairwise_dist) + eps
 
 
 def linear(x1, x2):
     return np.dot(x1.T, x2)
+        
+def SVM(D, label, c, fun=linear):
+    H = np.empty((len(label), len(label)))
 
+    def matrix_H_kernel(D, label, fun=linear):
+        z = vcol(np.where(label == 0, 1, -1))
+        H = np.empty((len(label), len(label)))
+        D = D.T
+        for i in range(D.shape[0]):
+            for j in range(D.shape[0]):
+                H[i][j] = z[i] * z[j] * fun(D[i], D[j])
 
-def matrix_H_kernel(D, label, fun=linear):
-    z = vcol(np.where(label == 0, 1, -1))
-    H = np.empty((100, 100))
-    D = D.T
-    for i in range(D.shape[0]):
-        for j in range(D.shape[0]):
-            H[i][j] = z[i] * z[j] * fun(D[i], D[j])
+        return H
 
-    return H
-
-
-def SVM(D, label, H, c, fun=linear):
     def L_and_gradL(alpha):
         L_d = 0.5 * np.dot(alpha.T, np.dot(H, alpha)) - np.dot(alpha, np.ones(np.shape(alpha)[0]))
         return L_d
@@ -346,29 +299,31 @@ def SVM(D, label, H, c, fun=linear):
         grad_L = np.dot(H, alpha) - np.ones(D.shape[1])
         return np.reshape(grad_L, (D.shape[1],))
 
+        
+    H = matrix_H_kernel(D, label, fun=linear)
     z = np.where(label == 0, 1, -1)
     # print(z)
 
     (x, f, d) = sp.optimize.fmin_l_bfgs_b(L_and_gradL,
-                                          np.zeros((D.shape[1], 1)),
-                                          approx_grad=False,
-                                          fprime=grad,
-                                          bounds=[(0, c) for _ in range(D.shape[1])],
-                                          maxfun=15000, maxiter=100000,
-                                          factr=1.0)
+                                        np.zeros((D.shape[1], 1)),
+                                        approx_grad=False,
+                                        fprime=grad,
+                                        bounds=[(0, c) for _ in range(D.shape[1])],
+                                        maxfun=15000, maxiter=100000,
+                                        factr=1.0)
 
     # scores = np.dot(x*z, fun(D, D))
     D = D.T
-    scores2 = np.empty(100)
+    scores2 = np.empty(len(label))
     for i in range(D.shape[0]):
         scores2[i] = 0
         for j in range(D.shape[0]):
             scores2[i] = scores2[i] + x[j] * z[j] * fun(D[j], D[i])
 
     check = np.where(scores2 > 0, 1, -1) == z
-
+    
+    print(" Dual loss =  " + str(-f))
     print(str(float(1 - len(check[check == True]) / len(z))) + " % err")
-    print("c = " + str(c) + ", K = " + str(K) + " ,dual loss =  " + str(-f))
 
 ############################## GMM ##############################
 
@@ -530,3 +485,49 @@ def TNB_kfold_wrapper(D, L):
 
 def logreg_kfold_wrapper(D, L):
     print("LogReg err: "+str(logreg_wrapper(D,L)))
+    
+def SVM_wrapper(D, L):
+    cs = [10**-5, 2*10**-5, 5*10**-5]
+    D = np.append(D, np.ones((1,D.shape[1])),axis=0)
+    #polynomial
+    for c in cs:
+        for mul in [1, 10, 100, 1000]:
+            c = c * mul
+            print("c= "+str(c)+" poly("+str(2)+")")
+            set_d(2)
+            svm = SVM(D, L, c, polynomial_kernel)         
+            
+            print("c= "+str(c)+" poly("+str(3)+")")
+            set_d(3)
+            svm = SVM(D, L, c, polynomial_kernel)
+            
+        
+    #rbf
+    for c in cs:
+        for mul in [1, 10, 100, 1000]:
+            c = c * mul
+            print("c= "+str(c)+" rbf("+str(g_my)+")")
+            set_g(2)
+            svm = SVM(D, L, c, rbf_kernel)
+            
+            set_g(3)
+            print("c= "+str(c)+" rbf("+str(g_my)+")")
+            svm = SVM(D, L, c, rbf_kernel)
+            
+            set_g(4)
+            print("c= "+str(c)+" rbf("+str(g_my)+")")
+            svm = SVM(D, L, c, rbf_kernel)
+            
+            set_g(5)
+            print("c= "+str(c)+" rbf("+str(g_my)+")")
+            svm = SVM(D, L, c, rbf_kernel)
+    
+    """ #linear
+    for c in cs:
+        for mul in [1, 10, 100, 1000]:
+            c = c * mul
+            H = matrix_H_kernel(D, L, linear)
+            SVM(D, L, H, c, linear) """
+    
+    
+    

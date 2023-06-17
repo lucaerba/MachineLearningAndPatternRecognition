@@ -3,6 +3,7 @@ import input
 import evaluation
 import scipy as sp
 import numpy as np
+import threading
 
 P_target = 0.1
 C_fn = 1
@@ -14,13 +15,26 @@ def DCF(FN, FP):
 def main(seed=1,K=5):
     D, L = input.load(input.traininput)
 
-    model.logreg_kfold_wrapper(D,L)
-    model.MVG_kfold_wrapper(D, L)
-    model.NB_kfold_wrapper(D, L)
-    model.TMVG_kfold_wrapper(D, L)
-    model.TNB_kfold_wrapper(D, L)
+    # Create threads for each function
+    threads = []
+
+    #threads.append(threading.Thread(target=model.logreg_kfold_wrapper, args=(D, L)))
+    #threads.append(threading.Thread(target=model.MVG_kfold_wrapper, args=(D, L)))
+    #threads.append(threading.Thread(target=model.NB_kfold_wrapper, args=(D, L)))
+    #threads.append(threading.Thread(target=model.TMVG_kfold_wrapper, args=(D, L)))
+    #threads.append(threading.Thread(target=model.TNB_kfold_wrapper, args=(D, L)))
+    threads.append(threading.Thread(target=model.SVM_wrapper, args=(D, L)))
+    
+    # Start the threads
+    for thread in threads:
+        thread.start()
+
+    # Wait for all threads to finish
+    for thread in threads:
+        thread.join()
      
     DTE, LTE = input.load(input.testinput)
+    
     nSamp = int(D.shape[1]/K)
     residuals = D.shape[1] - nSamp*K
     sub_arr = np.ones((K, 1)) * nSamp
@@ -37,10 +51,12 @@ def main(seed=1,K=5):
 
         S = model.score_matrix_MVG(DTR, LTR, DTE)
         pred_l, acc = model.predicted_labels_and_accuracy(S, LTE)
-    
-        print("ConfMatr: "+str(evaluation.optimal_Bayes_decision(0.1, 1, 1, pred_l, LTE)))
-        print("DCF: "+str(evaluation.Bayes_risk(0.1, 1, 1, pred_l, LTE)))
-        print("err: "+str((1-acc)*100)+" % "+str(pred_l))
+
+        print("---------"+str(i)+"-------------")
+        print(" ConfMatr: "+str(evaluation.optimal_Bayes_decision(0.1, 1, 1, pred_l, LTE)))
+        print(" DCF: "+str(evaluation.Bayes_risk(0.1, 1, 1, pred_l, LTE)))
+        print(" err: "+str((1-acc)*100)+" % ")
+        
 if __name__ == '__main__':
     main()
     
