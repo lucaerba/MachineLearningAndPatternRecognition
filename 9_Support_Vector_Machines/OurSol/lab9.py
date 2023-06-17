@@ -30,7 +30,7 @@ def Jw(w,d,z,c):
     
     return first + c*second
 
-def   linear_SVM(D,label,c,H):
+def linear_SVM(D,label,c,H):
     def L_and_gradL(alpha):
         L_d = 0.5 * np.dot(alpha.T, np.dot(H, alpha)) - np.dot(alpha,np.ones(np.shape(alpha)[0]))
         return L_d

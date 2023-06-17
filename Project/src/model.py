@@ -109,7 +109,7 @@ def logreg_wrapper(D,L,seed=0):
 
             err.append(1 - len(check[check == True]) / len(LTE))
             # print("Test len:"+str(len(LTE))+" FN:"+str(len(check2))+ " FP:"+ str(len(check3)))
-        print(l)
+        # print(l)
         err_l_min.append(np.min(err))
         pred_l_min.append(S_sc[np.argmin(err)])
         
@@ -117,7 +117,7 @@ def logreg_wrapper(D,L,seed=0):
 
         
 def logpdf_GAU_ND(X, mu, C):
-    XC = X - mu
+    XC = X - vcol(mu)
     M = X.shape[0]
     const = - 0.5 * M * np.log(2*np.pi)
     logdet = np.linalg.slogdet(C)[1]
@@ -127,20 +127,13 @@ def logpdf_GAU_ND(X, mu, C):
 
 def mu_and_sigma_ML(x):
     N = x.shape[1]
-    M = x.shape[0]
 
-    mu_ML = []
-    sigma_ML = []
+    mu_ML = np.mean(x,axis=1)
+    x_cent = x - mu_ML[:, np.newaxis]
 
-    for i in range(M):
-        mu_ML.append(np.sum(x[i,:]) / N)
+    sigma_ML = 1/N * np.dot(x_cent,x_cent.T)
 
-    x_cent = x - np.reshape(mu_ML, (M,1))
-    for i in range(M):
-        for j in range(M):
-            sigma_ML.append(np.dot(x_cent[i,:],x_cent[j,:].T) / N)
-
-    return np.vstack(mu_ML), np.reshape(sigma_ML, (M,M))
+    return mu_ML, sigma_ML
 
 def loglikelihood(x, mu_ML, C_ML):
     l = np.sum(logpdf_GAU_ND(x, mu_ML, C_ML))
@@ -263,6 +256,265 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
         
     return np.min(err),pred[np.argmin(err)]
 
+############################## SVM ##############################
+
+def matrix_H(D, label):
+    z = vcol(np.where(label == 0, 1, -1))
+    G = np.dot(D.T, D)
+    H = np.dot(z, z.T) * G
+    return H
+
+
+def Jw(w, d, z, c):
+    first = 0.5 * np.linalg.norm(w) ** 2
+
+    second = np.sum(np.maximum(0, 1 - z * np.dot(d.T, w)))
+
+    return first + c * second
+
+
+def linear_SVM(D, label, c, H):
+    def L_and_gradL(alpha):
+        L_d = 0.5 * np.dot(alpha.T, np.dot(H, alpha)) - np.dot(alpha, np.ones(np.shape(alpha)[0]))
+        return L_d
+
+    def grad(alpha):
+        grad_L = np.dot(H, alpha) - np.ones(D.shape[1])
+        return np.reshape(grad_L, (D.shape[1],))
+
+    z = np.where(label == 0, 1, -1)
+    # print(z)
+
+    (x, f, d) = sp.optimize.fmin_l_bfgs_b(L_and_gradL,
+                                          np.zeros((D.shape[1], 1)),
+                                          approx_grad=False,
+                                          fprime=grad,
+                                          bounds=[(0, c) for _ in range(D.shape[1])],
+                                          maxfun=15000, maxiter=100000,
+                                          factr=1.0)
+
+    w = np.dot(D, x * z)
+
+    scores = np.dot(w.T, D)
+
+    check = np.where(scores > 0, 1, -1) == z
+
+    print(str(1 - len(check[check == True]) / len(z)))
+    print(
+        "c = " + str(c) + " - (" + str(Jw(w, D, z, c)) + ", " + str(-f) + ") - duality gap: " + str(Jw(w, D, z, c) + f))
+
+
+c_my = 0
+d_my = 2
+g_my = 1
+eps = 0
+
+
+def polynomial_kernel(x1, x2, c=c_my, d=d_my):
+    c = c_my
+    d = d_my
+    return (np.dot(x1.T, x2) + c) ** d + eps
+
+
+def rbf_kernel(x1, x2, gamma=g_my):
+    gamma = g_my
+    pairwise_dist = np.linalg.norm(x1 - x2) ** 2
+    return np.exp(-gamma * pairwise_dist) + eps
+
+
+def linear(x1, x2):
+    return np.dot(x1.T, x2)
+
+
+def matrix_H_kernel(D, label, fun=linear):
+    z = vcol(np.where(label == 0, 1, -1))
+    H = np.empty((100, 100))
+    D = D.T
+    for i in range(D.shape[0]):
+        for j in range(D.shape[0]):
+            H[i][j] = z[i] * z[j] * fun(D[i], D[j])
+
+    return H
+
+
+def SVM(D, label, H, c, fun=linear):
+    def L_and_gradL(alpha):
+        L_d = 0.5 * np.dot(alpha.T, np.dot(H, alpha)) - np.dot(alpha, np.ones(np.shape(alpha)[0]))
+        return L_d
+
+    def grad(alpha):
+        grad_L = np.dot(H, alpha) - np.ones(D.shape[1])
+        return np.reshape(grad_L, (D.shape[1],))
+
+    z = np.where(label == 0, 1, -1)
+    # print(z)
+
+    (x, f, d) = sp.optimize.fmin_l_bfgs_b(L_and_gradL,
+                                          np.zeros((D.shape[1], 1)),
+                                          approx_grad=False,
+                                          fprime=grad,
+                                          bounds=[(0, c) for _ in range(D.shape[1])],
+                                          maxfun=15000, maxiter=100000,
+                                          factr=1.0)
+
+    # scores = np.dot(x*z, fun(D, D))
+    D = D.T
+    scores2 = np.empty(100)
+    for i in range(D.shape[0]):
+        scores2[i] = 0
+        for j in range(D.shape[0]):
+            scores2[i] = scores2[i] + x[j] * z[j] * fun(D[j], D[i])
+
+    check = np.where(scores2 > 0, 1, -1) == z
+
+    print(str(float(1 - len(check[check == True]) / len(z))) + " % err")
+    print("c = " + str(c) + ", K = " + str(K) + " ,dual loss =  " + str(-f))
+
+############################## GMM ##############################
+
+def logpdf_GMM(X, gmm):
+    S = np.zeros((len(gmm), X.shape[1]))
+    for g in range(len(gmm)):
+        (w,mu,C) = gmm[g]
+        S[g, :] = logpdf_GAU_ND(X, vcol(mu), C) + np.log(w)
+    logdens = sp.special.logsumexp(S, axis=0)
+    return S, np.hstack(logdens)
+
+def GMM_EM(X,gmm,psi=0.01):
+    err = 1E-6
+    log_l_OLD = 0
+    diff = np.inf
+    N = X.shape[1]
+
+    while diff > err:
+        gmm_NEW = []
+        S, logdens = logpdf_GMM(X, gmm)
+        Post = np.exp(S - logdens)
+        for g in range(len(gmm)):
+            gamma = Post[g,:]
+            Z_g = np.sum(gamma)
+            F_g = np.dot(gamma,X.T)
+            S_g = np.dot(X, (vrow(gamma)*X).T)
+            w = Z_g/N
+            mu = vcol(F_g/Z_g)
+            Sigma = S_g/Z_g - np.dot(mu,mu.T)
+            U, s, _ = np.linalg.svd(Sigma)
+            s[s < psi] = psi
+            Sigma = np.dot(U, vcol(s) * U.T)
+
+            gmm_NEW.append((w,mu,Sigma))
+
+        log_l_NEW = logdens.sum()/N
+        # print(log_l_NEW)
+        diff = np.abs(log_l_NEW - log_l_OLD)
+
+        log_l_OLD = log_l_NEW
+        gmm = gmm_NEW
+
+    return gmm
+
+def GMM_EM_diag(X,gmm,psi=0.01):
+    err = 1E-6
+    log_l_OLD = 0
+    diff = np.inf
+    N = X.shape[1]
+
+    while diff > err:
+        gmm_NEW = []
+        S, logdens = logpdf_GMM(X, gmm)
+        Post = np.exp(S - logdens)
+        for g in range(len(gmm)):
+            gamma = Post[g, :]
+            Z_g = np.sum(gamma)
+            F_g = np.dot(gamma, X.T)
+            S_g = np.dot(X, (vrow(gamma) * X).T)
+            w = Z_g / N
+            mu = vcol(F_g / Z_g)
+            Sigma = S_g / Z_g - np.dot(mu, mu.T)
+            Sigma = Sigma * np.eye(Sigma.shape[0])
+            U, s, _ = np.linalg.svd(Sigma)
+            s[s < psi] = psi
+            Sigma = np.dot(U, vcol(s) * U.T)
+
+            gmm_NEW.append((w, mu, Sigma))
+
+        log_l_NEW = logdens.sum() / N
+        # print(log_l_NEW)
+        diff = np.abs(log_l_NEW - log_l_OLD)
+
+        log_l_OLD = log_l_NEW
+        gmm = gmm_NEW
+
+    return gmm
+
+def GMM_EM_tied(X,gmm,psi=0.01):
+    err = 1E-6
+    log_l_OLD = 0
+    diff = np.inf
+    N = X.shape[1]
+
+    while diff > err:
+        gmm_NEW = []
+        S, logdens = logpdf_GMM(X, gmm)
+        Post = np.exp(S - logdens)
+        Sigma_tied = np.zeros((X.shape[0], X.shape[0]))
+        for g in range(len(gmm)):
+            gamma = Post[g, :]
+            Z_g = np.sum(gamma)
+            F_g = np.dot(gamma, X.T)
+            S_g = np.dot(X, (vrow(gamma) * X).T)
+            w = Z_g / N
+            mu = vcol(F_g / Z_g)
+            Sigma = S_g / Z_g - np.dot(mu, mu.T)
+            Sigma_tied += Z_g*Sigma
+            gmm_NEW.append((w,mu))
+
+        gmm = gmm_NEW
+        Sigma_tied /= N
+        U, s, _ = np.linalg.svd(Sigma_tied)
+        s[s < psi] = psi
+        Sigma_tied = np.dot(U, vcol(s) * U.T)
+
+        gmm_NEW = []
+        for g in range(len(gmm)):
+            w, mu = gmm[g]
+            gmm_NEW.append((w, mu, Sigma_tied))
+
+        log_l_NEW = logdens.sum() / N
+        # print(log_l_NEW)
+        diff = np.abs(log_l_NEW - log_l_OLD)
+
+        log_l_OLD = log_l_NEW
+        gmm = gmm_NEW
+
+    return gmm
+
+def split_gmm(gmm,alpha=0.1):
+    split_gmm = []
+    for i in range(len(gmm)):
+        U, s, Vh = np.linalg.svd(gmm[i][2])
+        d = U[:, 0:1] * s[0] ** 0.5 * alpha
+        split_gmm.append((gmm[i][0]/2,gmm[i][1]+d,gmm[i][2]))
+        split_gmm.append((gmm[i][0]/2,gmm[i][1]-d,gmm[i][2]))
+    return split_gmm
+
+def LBG_gmm(X,G,psi=0.01):
+    mu, C = mu_and_sigma_ML(X)
+    U, s, _ = np.linalg.svd(C)
+    s[s < psi] = psi
+    C = np.dot(U, vcol(s) * U.T)
+
+    GMM_1 = [(1.0, mu, C)]
+
+    gmm = GMM_1
+    while len(gmm) <= G:
+        gmm = GMM_EM_diag(X,gmm)
+        if len(gmm) == G:
+            break
+        gmm = split_gmm(gmm)
+
+    return gmm
+
 K = 5
 def MVG_kfold_wrapper(D, L):
     print("MVG err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_MVG)))
@@ -277,4 +529,4 @@ def TNB_kfold_wrapper(D, L):
     print("TNB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedNaiveBayes)))
 
 def logreg_kfold_wrapper(D, L):
-    print(logreg_wrapper(D,L))
+    print("LogReg err: "+str(logreg_wrapper(D,L)))

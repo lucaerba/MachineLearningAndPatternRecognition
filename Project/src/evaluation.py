@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 def optimal_Bayes_decision(p, C_fn, C_fp, pred, f_labels):
     confusion_matrix = np.zeros((2,2))
@@ -43,7 +44,7 @@ def Bayes_risk_normalized_minimum(f_llr,f_labels,p,C_fn,C_fp):
         DCF_min.append(DCF / DCF_dummy)
     return min(DCF_min)
 
-def ROC_curve():
+def ROC_curve(f_llr,f_labels):
     t_set = np.sort(np.append(f_llr, [np.inf, -np.inf]))
     FPR = []
     TPR = []

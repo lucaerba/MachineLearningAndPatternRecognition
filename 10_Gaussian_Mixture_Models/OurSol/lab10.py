@@ -26,10 +26,8 @@ def logpdf_GAU_ND(x, mu, C):
     logN = first_term + second_term + third_term
     return np.hstack(logN)
 
-
 def mu_and_sigma_ML(x):
     N = x.shape[1]
-    M = x.shape[0]
 
     mu_ML = np.mean(x,axis=1)
     x_cent = x - mu_ML[:, np.newaxis]
