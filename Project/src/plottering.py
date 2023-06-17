@@ -1,3 +1,6 @@
+import numpy as np
+import input
+import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
@@ -46,6 +49,32 @@ def plot():
 
     plt.show()
 
+def compute_pearson_coeff(X, Y):
+    N = X.shape[0]
+    mean_x = np.mean(X)
+    mean_y = np.mean(Y)
+
+    numerator = 1/N * np.dot(X,Y.T) - mean_y * mean_x
+    denominator = np.sqrt(1/N**2 * np.dot(X-mean_x,X.T-mean_x) * np.dot(Y-mean_y,Y.T-mean_y))
+
+    corr = numerator / denominator
+    return corr
+
+def plot_correlations(D, cmap="Greys"):
+    corr = np.zeros((10, 10))
+    for x in range(10):
+        for y in range(10):
+            X = D[x, :]
+            Y = D[y, :]
+            pearson_coeff = compute_pearson_coeff(X, Y)
+            corr[x][y] = pearson_coeff
+    sns.set()
+    sns.heatmap(np.abs(corr), linewidth=0.2, cmap=cmap, square=True, cbar=False)
+    plt.show()
+
 if __name__ == '__main__':
+    D, L = input.load(input.traininput)
     plot()
+    plot_correlations(D)
+
     
