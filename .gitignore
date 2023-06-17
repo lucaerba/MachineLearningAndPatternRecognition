@@ -1,3 +1,7 @@
 .vscode/
 .vscode/*
 ./Project/src/__pycache__/*
+OpenAi/main.py
+OpenAi/key.txt
+Project/src/__pycache__/evaluation.cpython-310.py
+Project/src/__pycache__/model.cpython-310.pyc
