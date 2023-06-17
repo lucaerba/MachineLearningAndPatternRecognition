@@ -1,6 +1,7 @@
 import scipy as sp
 import numpy as np    
 import threading
+
 def vcol(v):
     v = v.reshape((v.size, 1))
     return v
@@ -259,10 +260,6 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
 d = 2
 gamma = 2
 eps = 0
-
-def set_d(myd):
-    print(d)
-    d = myd 
         
 def set_g(myg):
     gamma = myg
@@ -453,7 +450,7 @@ def split_gmm(gmm,alpha=0.1):
         split_gmm.append((gmm[i][0]/2,gmm[i][1]-d,gmm[i][2]))
     return split_gmm
 
-def LBG_gmm(X,G,psi=0.01):
+def LBG_gmm(X,G,func,psi=0.01):
     mu, C = mu_and_sigma_ML(X)
     U, s, _ = np.linalg.svd(C)
     s[s < psi] = psi
@@ -463,12 +460,50 @@ def LBG_gmm(X,G,psi=0.01):
 
     gmm = GMM_1
     while len(gmm) <= G:
-        gmm = GMM_EM_diag(X,gmm)
+        gmm = func(X,gmm)
         if len(gmm) == G:
             break
         gmm = split_gmm(gmm)
 
     return gmm
+
+def Kfold_cross_validation_GMM(D, L, K, G, func=GMM_EM, seed=1):
+    nSamp = int(D.shape[1]/K)
+    residuals = D.shape[1] - nSamp*K
+    sub_arr = np.ones((K, 1)) * nSamp
+    if residuals != 0:
+        sub_arr = np.array([int(x+1) for x in sub_arr[:residuals]] + [int(x) for x in sub_arr[residuals:]])
+    np.random.seed(seed)
+    idx = np.random.permutation(D.shape[1])
+    err = []
+    for i in range(K):
+        idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i+1]))]
+        idxTrain = [x for x in idx if x not in idxTest]
+        DTR = D[:, idxTrain]
+        DTE = D[:, idxTest]
+        LTR = L[idxTrain]
+        LTE = L[idxTest]
+
+        DTR0 = DTR[:,LTR==0]
+        gmm0 = LBG_gmm(DTR0,G,func)
+        DTR1 = DTR[:,LTR==1]
+        gmm1 = LBG_gmm(DTR1,G,func)
+
+        _, ll0 = logpdf_GMM(DTE,gmm0)
+        _, ll1 = logpdf_GMM(DTE, gmm1)
+
+        ll=[]
+        ll0 = np.exp(ll0)
+        ll1 = np.exp(ll1)
+
+        ll.append((ll0,ll1))
+        ll = np.reshape(ll, (2,len(ll0)))
+
+        pred = np.argmax(ll,axis=0)
+        check = pred == LTE
+        acc_i = len(check[check == True]) / len(LTE)
+        err.append(1-acc_i)
+    return np.min(err)
 
 K = 5
 def MVG_kfold_wrapper(D, L):
@@ -486,48 +521,12 @@ def TNB_kfold_wrapper(D, L):
 def logreg_kfold_wrapper(D, L):
     print("LogReg err: "+str(logreg_wrapper(D,L)))
     
-def SVM_wrapper(D, L):
-    cs = [10**-5, 2*10**-5, 5*10**-5]
-    D = np.append(D, np.ones((1,D.shape[1])),axis=0)
-    #polynomial
-    for c in cs:
-        for mul in [1, 10, 100, 1000]:
-            c = c * mul
-            print("c= "+str(c)+" poly("+str(2)+")")
-            set_d(2)
-            svm = SVM(D, L, c, polynomial_kernel)         
-            
-            print("c= "+str(c)+" poly("+str(3)+")")
-            set_d(3)
-            svm = SVM(D, L, c, polynomial_kernel)
-            
-        
-    #rbf
-    for c in cs:
-        for mul in [1, 10, 100, 1000]:
-            c = c * mul
-            print("c= "+str(c)+" rbf("+str(g_my)+")")
-            set_g(2)
-            svm = SVM(D, L, c, rbf_kernel)
-            
-            set_g(3)
-            print("c= "+str(c)+" rbf("+str(g_my)+")")
-            svm = SVM(D, L, c, rbf_kernel)
-            
-            set_g(4)
-            print("c= "+str(c)+" rbf("+str(g_my)+")")
-            svm = SVM(D, L, c, rbf_kernel)
-            
-            set_g(5)
-            print("c= "+str(c)+" rbf("+str(g_my)+")")
-            svm = SVM(D, L, c, rbf_kernel)
-    
-    """ #linear
-    for c in cs:
-        for mul in [1, 10, 100, 1000]:
-            c = c * mul
-            H = matrix_H_kernel(D, L, linear)
-            SVM(D, L, H, c, linear) """
-    
-    
-    
+def GMM_wrapper(D, L):
+    G = [1,2,4,8,16,32]
+    functions = [GMM_EM, GMM_EM_diag, GMM_EM_tied]
+    for g in G:
+        print('------ g = {} ------'.format(g))
+        for f in functions:
+            err = Kfold_cross_validation_GMM(D, L, 5, g, f)
+            print("error: {}, using function: {} ".format(err,f.__name__))
+
