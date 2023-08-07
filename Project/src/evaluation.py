@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def optimal_Bayes_decision(p, C_fn, C_fp, pred, f_labels):
+def confusion_matrix(pred, f_labels):
     confusion_matrix = np.zeros((2,2))
     for ii in range(len(pred)):
         confusion_matrix[pred[ii]][f_labels[ii]] += 1
@@ -28,12 +28,11 @@ def Bayes_risk_normalized(f_llr,f_labels,p,C_fn,C_fp):
     DCF_dummy = min(p*C_fn,(1-p)*C_fp)
     return DCF / DCF_dummy
 
-def Bayes_risk_normalized_minimum(f_llr,f_labels,p,C_fn,C_fp):
+def minDCF(f_llr,f_labels,p,C_fn,C_fp):
     t_set = np.sort(np.append(f_llr,[np.inf,-np.inf]))
     DCF_min = []
-    for aa in t_set:
-        threshold = aa
-        pred = np.where(f_llr > - threshold,1,0)
+    for threshold in t_set:
+        pred = np.where(f_llr > threshold,1,0)
         M = np.zeros((2, 2))
         for ii in range(len(pred)):
             M[pred[ii]][f_labels[ii]] += 1
@@ -42,7 +41,7 @@ def Bayes_risk_normalized_minimum(f_llr,f_labels,p,C_fn,C_fp):
         DCF = p * C_fn * FNR + (1 - p) * C_fp * FPR
         DCF_dummy = min(p*C_fn,(1-p)*C_fp)
         DCF_min.append(DCF / DCF_dummy)
-    return min(DCF_min)
+    return np.min(DCF_min)
 
 def ROC_curve(f_llr,f_labels):
     t_set = np.sort(np.append(f_llr, [np.inf, -np.inf]))
@@ -74,7 +73,7 @@ def Bayes_error_plots(llr,labels):
             for p_tilde in effPriorLogOdds:
                 prior = 1 / (1 + np.exp(-p_tilde))
                 DCF.append(Bayes_risk_normalized(llr[i],labels[i],prior,1,1))
-                DCF_min.append(Bayes_risk_normalized_minimum(llr[i],labels[i],prior,1,1))
+                DCF_min.append(minDCF(llr[i],labels[i],prior,1,1))
             plt.plot(effPriorLogOdds, DCF, label= 'DCF' if i == 0 else 'DCF_eps1', color ='r' if i == 0 else 'y')
             plt.plot(effPriorLogOdds, DCF_min, label='min DCF' if i == 0 else 'min DCF_eps1', color ='b' if i == 0 else 'c')
         plt.legend()
@@ -87,7 +86,7 @@ def Bayes_error_plots(llr,labels):
     for p_tilde in effPriorLogOdds:
         prior = 1 / (1 + np.exp(-p_tilde))
         DCF.append(Bayes_risk_normalized(llr, labels, prior, 1, 1))
-        DCF_min.append(Bayes_risk_normalized_minimum(llr, labels, prior, 1, 1))
+        DCF_min.append(minDCF(llr, labels, prior, 1, 1))
     plt.plot(effPriorLogOdds, DCF, label='DCF', color='r')
     plt.plot(effPriorLogOdds, DCF_min, label='min DCF', color='b')
     plt.legend()

@@ -1,13 +1,15 @@
 import numpy as np
 import input
 import seaborn as sns
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from model import PCA, LDA
 
-file_path = "../Data/Train.txt"
+file_path = input.traininput
 
 def plot_simple():
-    # Your code for reading data and plotting goes here
     data = []
 
     with open(file_path, "r") as file:
@@ -17,31 +19,27 @@ def plot_simple():
             data.append([float(element) for element in elements])
             num_params = len(data[0]) - 1
     
-    labels = ["Parameter {}".format(i) for i in range(num_params)]
+    labels = ["Parameter {}".format(i+1) for i in range(num_params)]
 
     for i in range(num_params):
-        fig, ax = plt.subplots(figsize=(8, 6))
-        # Your code for plotting histograms goes here
-        # Use ax.hist to plot histograms for each class
         x_values = [entry[i] for entry in data]
-        y_values = [entry[i] for entry in data]
         classes = [entry[-1] for entry in data]
 
         x_class0 = [x for x, c in zip(x_values, classes) if c == 0]
         x_class1 = [x for x, c in zip(x_values, classes) if c == 1]
 
-        ax.hist(x_class0, bins=30, color='blue', alpha=0.5, density=True, label='Class 0')
-        ax.hist(x_class1, bins=30, color='red', alpha=0.5, density=True, label='Class 1')
-        
-        ax.set_xlabel(labels[i], fontsize=20)
-        ax.set_ylabel("Density", fontsize=20)
-        ax.legend()
+        plt.hist(x_class0, bins=50, color='blue', alpha=0.5, density=True, label='Class 0')
+        plt.hist(x_class1, bins=50, color='red', alpha=0.5, density=True, label='Class 1')
+
+        plt.legend(fontsize=16)
+
+        plt.tick_params(axis='x', labelsize=16)
+        plt.tick_params(axis='y', labelsize=16)
+        plt.title(labels[i], fontsize=24)
     
-        plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)  # spacing between graphs
-    
-        plt.savefig('plot_{}.png'.format(i))  # save each plot as a separate PNG file
-    
-        plt.close() 
+        plt.savefig('plot_{}.png'.format(i))
+        plt.close()
+
     
     
 def plot_multiple():
@@ -98,10 +96,10 @@ def compute_pearson_coeff(X, Y):
     corr = numerator / denominator
     return corr
 
-def plot_correlations(D, cmap="Greys"):
-    corr = np.zeros((10, 10))
-    for x in range(10):
-        for y in range(10):
+def plot_correlations(D, cmap="Greys",dimensions=10):
+    corr = np.zeros((dimensions, dimensions))
+    for x in range(dimensions):
+        for y in range(dimensions):
             X = D[x, :]
             Y = D[y, :]
             pearson_coeff = compute_pearson_coeff(X, Y)
@@ -110,9 +108,52 @@ def plot_correlations(D, cmap="Greys"):
     sns.heatmap(np.abs(corr), linewidth=0.2, cmap=cmap, square=True, cbar=False)
     plt.show()
 
+def plot_PCA(D,L,m,s=16):
+
+    D_class1 = D[:,L == 1]
+    D_class0 = D[:,L == 0]
+
+    for j in range(m):
+        for i in range(m):
+            if i != j: # otherwise useless plots, data on same line
+                plt.figure()
+                plt.scatter(D_class1[j, :], D_class1[i, :], label='class 1', s=s, alpha=0.8)
+                plt.scatter(D_class0[j, :], D_class0[i, :], label='class 0', s=s, alpha=0.8)
+                plt.tick_params(axis='x', labelsize=16)
+                plt.tick_params(axis='y', labelsize=16)
+                # plt.title("PCA scatter plot (m={})".format(m))
+                plt.legend(fontsize=16,s=30)
+                plt.savefig("PCA_j={}_i={}.png".format(j,i))
+                # plt.show()
+
+def plot_LDA(D,L):
+
+    D_class1 = D[:, L == 1]
+    D_class0 = D[:, L == 0]
+
+    plt.figure()
+    plt.hist(D_class1[0, :], bins=100, alpha=1, label='class 1')
+    plt.hist(D_class0[0, :], bins=100, alpha=0.5, label='class 0')
+    plt.tick_params(axis='x', labelsize=16)
+    plt.tick_params(axis='y', labelsize=16)
+    plt.legend(fontsize=16)
+    plt.savefig('LDA.png')
+    plt.show()
+
+
 if __name__ == '__main__':
     D, L = input.load(input.traininput)
-    plot_simple()
-    #plot_correlations(D)
+
+    # m = 4
+    # DP = PCA(D,m)
+    # plot_PCA(DP,L,m)
+
+    DP = LDA(D,L,m=1)
+    plot_LDA(DP,L)
+
+    # plot_simple()
+    # plot_correlations(D)
+    # plot_correlations(D[:,L == 1], 'Reds')
+    # plot_correlations(D[:,L == 0], 'Blues')
 
     

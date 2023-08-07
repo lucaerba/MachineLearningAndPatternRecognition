@@ -1,6 +1,7 @@
 import scipy as sp
 import numpy as np    
 import threading
+import evaluation
 
 def vcol(v):
     v = v.reshape((v.size, 1))
@@ -48,6 +49,8 @@ def LDA(D,L,m,N_classes = 2):
 
     return DP
 
+################################### LOG-REG ##########################################
+
 def J(w, b, DTR, LTR, l):
     #first = l/2*np.square(np.linalg.norm(w))
     #second = np.sum(np.logaddexp(0, -(2*LTR-1)*(np.transpose(w)*DTR+b)))*(1/len(DTR))
@@ -83,8 +86,7 @@ def logreg_wrapper(D,L,seed=0):
         idx = np.random.permutation(D.shape[1])
         err = []
         S_sc = []
-        err_l_min = []
-        pred_l_min = []
+        minDCF = []
         for i in range(K):
             idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
             idxTrain = [x for x in idx if x not in idxTest]
@@ -92,7 +94,10 @@ def logreg_wrapper(D,L,seed=0):
             DTE = D[:, idxTest]
             LTR = L[idxTrain]
             LTE = L[idxTest]
-            (x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj, np.zeros(DTR.shape[0] + 1), approx_grad = True, args=(DTR, LTR, l))
+            (x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj,
+                                                  np.zeros(DTR.shape[0] + 1),
+                                                  approx_grad = True,
+                                                  args=(DTR, LTR, l))
         
         # print("lam " + str(l) + " min:" + str(f))
         
@@ -105,12 +110,14 @@ def logreg_wrapper(D,L,seed=0):
             check = S_sc[i]==LTE
 
             err.append(1 - len(check[check == True]) / len(LTE))
-        # print(l)
-        err_l_min.append(np.min(err))
-        pred_l_min.append(S_sc[np.argmin(err)])
-        
-    return (err_l_min),(pred_l_min)
 
+            minDCF.append(evaluation.minDCF(S, LTE, 0.1, 1, 1))
+        # print(l)
+        print('Lambda = {} -- minDCF: {}'.format(l,np.mean(minDCF)))
+    # return np.mean(err), S_sc[np.argmin(err)], np.mean(minDCF), l
+
+
+############################## MVG and NAIVE + TIED ###################################
         
 def logpdf_GAU_ND(X, mu, C):
     XC = X - vcol(mu)
@@ -238,6 +245,7 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
     
     err = []
     pred = []
+    minDCF = []
     for i in range(K):
         idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i+1]))]
         idxTrain = [x for x in idx if x not in idxTest]
@@ -249,28 +257,34 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
         pred_i, acc_i = predicted_labels_and_accuracy(Sjoint, LTE)
         pred.append(pred_i)
         err.append(1-acc_i)
-        
-    return np.min(err),pred[np.argmin(err)]
+
+        scores = - Sjoint[0,:] + Sjoint[1,:]
+
+        minDCF.append(evaluation.minDCF(scores, LTE, 0.1, 1, 1))
+
+    return np.min(err),pred[np.argmin(err)],np.mean(minDCF)
 
 ############################## SVM ##############################
 
-
-#TODO eps or c after every kern fun
 class Kernel:
 
-    def __init__(self, d=2, c=1, g=2):
+    def __init__(self, d=2, c=1, g=2, const=1):
        self.d = d
        self.c = c
        self.g = g
        self.eps = 0
+       self.const = const
     
     def polynomial(self, x1, x2):
-       return (np.dot(x1.T, x2) + 1) ** self.d + self.eps 
+       return (np.dot(x1.T, x2) + self.const) ** self.d + self.eps
    
     def rbf_kernel(self, x1, x2):
-        pairwise_dist = np.linalg.norm(x1 - x2) ** 2
-        return np.exp(-self.g * pairwise_dist) + self.eps        
-   
+        kernel = np.zeros((x1.shape[1], x2.shape[1]))
+        for i in range(x1.shape[1]):
+            for j in range(x2.shape[1]):
+                kernel[i, j] = np.exp(-self.g * (np.linalg.norm(x1[:, i] - x2[:, j]) ** 2)) + self.eps
+        return kernel
+
 class SVM:
     def __init__(self, D, L, c, fun):
         self.D = D
@@ -280,11 +294,14 @@ class SVM:
         
     def matrix_H_kernel(self):
         z = vcol(np.where(self.L == 0, 1, -1))
-        H = np.empty((len(self.L), len(self.L)))
-        D = self.D.T
-        for i in range(D.shape[0]):
-            for j in range(D.shape[0]):
-                H[i][j] = z[i] * z[j] * self.fun(D[i], D[j])
+        # H = np.empty((len(self.L), len(self.L)))
+        # D = self.D.T
+        # for i in range(D.shape[0]):
+        #     for j in range(D.shape[0]):
+        #         H[i][j] = z[i] * z[j] * self.fun(D[i], D[j])
+        #
+        D = self.D
+        H = vcol(z) * vrow(z) * self.fun(D,D)
 
         self.H = H
         
@@ -309,18 +326,18 @@ class SVM:
                                             maxfun=15000, maxiter=100000,
                                             factr=1.0)
 
-        # scores = np.dot(x*z, fun(D, D))
-        D = self.D.T
-        scores2 = np.empty(len(self.L))
-        for i in range(D.shape[0]):
-            scores2[i] = 0
-            for j in range(D.shape[0]):
-                scores2[i] = scores2[i] + x[j] * z[j] * self.fun(D[j], D[i])
+        scores = np.dot(x*z, self.fun(self.D, self.D))
+        # D = self.D.T
+        # scores2 = np.empty(len(self.L))
+        # for i in range(D.shape[0]):
+        #     scores2[i] = 0
+        #     for j in range(D.shape[0]):
+        #         scores2[i] = scores2[i] + x[j] * z[j] * self.fun(D[j], D[i])
 
-        check = np.where(scores2 > 0, 1, -1) == z
+        check = np.where(scores > 0, 1, -1) == z
         
         print(" Dual loss =  " + str(-f))
-        print(" " + str(float(1 - len(check[check == True]) / len(z))) + " % err")
+        print(" " + str(float(1 - len(check[check == True]) / len(z))) + " err")
         
 ############################## GMM ##############################
 
@@ -476,6 +493,7 @@ def Kfold_cross_validation_GMM(D, L, K, G, func=GMM_EM, seed=1):
     np.random.seed(seed)
     idx = np.random.permutation(D.shape[1])
     err = []
+    minDCF = []
     for i in range(K):
         idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i+1]))]
         idxTrain = [x for x in idx if x not in idxTest]
@@ -502,24 +520,51 @@ def Kfold_cross_validation_GMM(D, L, K, G, func=GMM_EM, seed=1):
         pred = np.argmax(ll,axis=0)
         check = pred == LTE
         acc_i = len(check[check == True]) / len(LTE)
+
+        llr = ll1-ll0
+        minDCF.append(evaluation.minDCF(llr,LTE,0.1,1,1))
+
         err.append(1-acc_i)
-    return np.min(err)
+
+    return np.mean(err), np.mean(minDCF)
 
 K = 5
 def MVG_kfold_wrapper(D, L):
-    print("MVG err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_MVG)))
+    # print("MVG err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_MVG)))
+    for m in range(2,11):
+        DP = PCA(D,m)
+        print('PCA = {}'.format(m))
+        print('MVG -- minDCF: {}'.format(Kfold_cross_validation(DP, L, K, func=score_matrix_MVG)[2]))
     
 def NB_kfold_wrapper(D, L):
-    print("NB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_NaiveBayes)))
+    # print("NB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_NaiveBayes)))
+    for m in range(2,11):
+        DP = PCA(D,m)
+        print('PCA = {}'.format(m))
+        print('NB -- minDCF: {}'.format(Kfold_cross_validation(DP, L, K, func=score_matrix_NaiveBayes)[2]))
     
 def TMVG_kfold_wrapper(D, L):
-    print("TMVG err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedMVG)))
+    # print("TMVG err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedMVG)))
+    for m in range(2,11):
+        DP = PCA(D,m)
+        print('PCA = {}'.format(m))
+        print('TMVG -- minDCF: {}'.format(Kfold_cross_validation(DP, L, K, func=score_matrix_TiedMVG)[2]))
     
 def TNB_kfold_wrapper(D, L):
-    print("TNB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedNaiveBayes)))
+    # print("TNB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedNaiveBayes)))
+    for m in range(2,11):
+        DP = PCA(D,m)
+        print('PCA = {}'.format(m))
+        print('TNB -- minDCF: {}'.format(Kfold_cross_validation(DP, L, K, func=score_matrix_TiedNaiveBayes)[2]))
 
 def logreg_kfold_wrapper(D, L):
-    print("LogReg err: "+str(logreg_wrapper(D,L)))
+    print('-- Logistic Regression -- (no PCA)')
+    # print("LogReg err: "+str(logreg_wrapper(D,L)[0]))
+    logreg_wrapper(D,L)
+    for m in range(2,11):
+        print('-- Logistic Regression -- (PCA = {})'.format(m))
+        DP = PCA(D, m)
+        logreg_wrapper(DP, L)
     
 def SVM_wrapper(D, L):
     cs = [10**-5, 2*(10**-5), 5*(10**-5)]
@@ -532,12 +577,12 @@ def SVM_wrapper(D, L):
             svm = SVM(D, L, c_val, pol_kern.polynomial)
             print("c= "+str(c_val)+" poly("+str(2)+")")
             svm.exec()
-            
+
             pol_kern = Kernel(d=3)
             svm = SVM(D, L, c_val, pol_kern.polynomial)
             print("c= "+str(c_val)+" poly("+str(3)+")")
             svm.exec()
-        
+
     print("------------------")
     #rbf
     for c in cs:
@@ -573,11 +618,17 @@ def SVM_wrapper(D, L):
     
     
 def GMM_wrapper(D, L):
-    G = [1,2,4,8,16,32]
+    G = [1,2,4,8,16]
     functions = [GMM_EM, GMM_EM_diag, GMM_EM_tied]
+
     for g in G:
         print('------ g = {} ------'.format(g))
         for f in functions:
-            err = Kfold_cross_validation_GMM(D, L, 5, g, f)
-            print("error: {}, using function: {} ".format(err,f.__name__))
+            err, minDCF = Kfold_cross_validation_GMM(D, L, K, g, f)
+            # print("error: {}, using function: {} ".format(err,f.__name__))
+            # print(pred[np.argmin(err)])
+
+            print('function = {}, minDCF: {}'.format(f.__name__,minDCF))
+
+
 

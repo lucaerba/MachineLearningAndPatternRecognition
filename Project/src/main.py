@@ -18,13 +18,13 @@ def main(seed=1,K=5):
     # Create threads for each function
     threads = []
 
-    #threads.append(threading.Thread(target=model.logreg_kfold_wrapper, args=(D, L)))
-    #threads.append(threading.Thread(target=model.MVG_kfold_wrapper, args=(D, L)))
-    #threads.append(threading.Thread(target=model.NB_kfold_wrapper, args=(D, L)))
-    #threads.append(threading.Thread(target=model.TMVG_kfold_wrapper, args=(D, L)))
-    #threads.append(threading.Thread(target=model.TNB_kfold_wrapper, args=(D, L)))
+    threads.append(threading.Thread(target=model.logreg_kfold_wrapper, args=(D, L)))
+    # threads.append(threading.Thread(target=model.MVG_kfold_wrapper, args=(D, L)))
+    # threads.append(threading.Thread(target=model.NB_kfold_wrapper, args=(D, L)))
+    # threads.append(threading.Thread(target=model.TMVG_kfold_wrapper, args=(D, L)))
+    # threads.append(threading.Thread(target=model.TNB_kfold_wrapper, args=(D, L)))
     # threads.append(threading.Thread(target=model.SVM_wrapper, args=(D, L)))
-    threads.append(threading.Thread(target=model.GMM_wrapper, args=(D, L)))
+    # threads.append(threading.Thread(target=model.GMM_wrapper, args=(D, L)))
     
     # Start the threads
     for thread in threads:
