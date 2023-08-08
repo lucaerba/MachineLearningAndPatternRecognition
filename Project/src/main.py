@@ -1,6 +1,7 @@
 import model
 import input
 import evaluation
+import plottering
 import scipy as sp
 import numpy as np
 import threading
@@ -12,8 +13,19 @@ C_fa = 1
 def DCF(FN, FP):
     return P_target * C_fn * FN + (1 - P_target) * C_fa * FP
 
+#min DCF, PCA, plot
 def main(seed=1,K=5):
     D, L = input.load(input.traininput)
+
+    #plot
+    plottering.plot_simple()
+    plottering.plot_LDA(D,L)
+    plottering.plot_correlations(D)
+    plottering.plot_Scatter(D,L)
+    #train
+    #calibration
+    #evaluation
+
 
     # Create threads for each function
     threads = []

@@ -2,7 +2,6 @@ import numpy as np
 import input
 import seaborn as sns
 import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from model import PCA, LDA
@@ -28,20 +27,17 @@ def plot_simple():
         x_class0 = [x for x, c in zip(x_values, classes) if c == 0]
         x_class1 = [x for x, c in zip(x_values, classes) if c == 1]
 
-        plt.hist(x_class0, bins=50, color='blue', alpha=0.5, density=True, label='Class 0')
-        plt.hist(x_class1, bins=50, color='red', alpha=0.5, density=True, label='Class 1')
-
+        plt.hist(x_class0, bins=70, color='blue', alpha=0.4, density=True, label='Class 0', linewidth=1.0, edgecolor='black')
+        plt.hist(x_class1, bins=70, color='red', alpha=0.4, density=True, label='Class 1', linewidth=1.0, edgecolor='black')
         plt.legend(fontsize=16)
 
         plt.tick_params(axis='x', labelsize=16)
         plt.tick_params(axis='y', labelsize=16)
         plt.title(labels[i], fontsize=24)
     
-        plt.savefig('plot_{}.png'.format(i))
+        plt.savefig('../Plots/plot_{}.png'.format(i))
         plt.close()
 
-    
-    
 def plot_multiple():
     data = []
 
@@ -105,8 +101,23 @@ def plot_correlations(D, cmap="Greys",dimensions=10):
             pearson_coeff = compute_pearson_coeff(X, Y)
             corr[x][y] = pearson_coeff
     sns.set()
-    sns.heatmap(np.abs(corr), linewidth=0.2, cmap=cmap, square=True, cbar=False)
-    plt.show()
+    sns.heatmap(np.abs(corr), linewidth=0.2, cmap=cmap, square=True, cbar=True)
+    plt.savefig("../Plots/correlations")
+
+def plot_Scatter(DTR, LTR):
+    idx = 0
+    for i in range(DTR.shape[0]):
+        for j in range(DTR.shape[0]):
+            if i != j:
+                plt.figure()
+                plt.scatter(DTR[i, LTR == 0], DTR[j, LTR == 0], label="0")
+                plt.scatter(DTR[i, LTR == 1], DTR[j, LTR == 1], label="1")
+                plt.legend()
+                plt.xlabel("Feature " + str(i))
+                plt.ylabel("Feature " + str(j))
+                plt.savefig("../Plots/scatter_" + str(idx))
+                idx += 1
+                plt.close()
 
 def plot_PCA(D,L,m,s=16):
 
@@ -132,13 +143,14 @@ def plot_LDA(D,L):
     D_class0 = D[:, L == 0]
 
     plt.figure()
-    plt.hist(D_class1[0, :], bins=100, alpha=1, label='class 1')
-    plt.hist(D_class0[0, :], bins=100, alpha=0.5, label='class 0')
+    plt.hist(D_class1[0, :], bins=70, alpha=1, label='class 1', linewidth=1.0, edgecolor='black')
+    plt.hist(D_class0[0, :], bins=70, alpha=0.5, label='class 0', linewidth=1.0, edgecolor='black')
     plt.tick_params(axis='x', labelsize=16)
     plt.tick_params(axis='y', labelsize=16)
     plt.legend(fontsize=16)
-    plt.savefig('LDA.png')
+    plt.savefig('../Plots/LDA.png')
     plt.show()
+    plt.close()
 
 
 if __name__ == '__main__':
