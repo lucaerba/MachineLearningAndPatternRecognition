@@ -150,79 +150,97 @@ def SVM_wrapper(D, L):
     original_stdout = sys.stdout
     with open(svm_output_file, 'w') as f:
         sys.stdout = f
-    
-        cs = [10**-5, 2*(10**-5), 5*(10**-5)]
-        D = np.append(D, np.ones((1,D.shape[1])),axis=0)
-        print("--------Polynomial----------")
         
-        #polynomial
+        PCA_dim =  ['No PCA'] + [aa for aa in range(2, 10)]
+        for m in PCA_dim:
+            if m == "No PCA":
+                print("NO PCA")
+                DP = D
+            else:
+                print("PCA({})".format(m))
+                DP = PCA(D, m)
+                
+            print("--------Polynomial----------")
+        
+            cs = [10**-5, 2*(10**-5), 5*(10**-5)]
+            DP = np.append(DP, np.ones((1,DP.shape[1])),axis=0)
+            #polynomial
+            for c in cs:
+                for mul in [1, 10, 100, 1000]:
+                    c_val = c * mul
+                    pol_kern = Kernel(d=2)
+                    svm = SVM(DP, L, c_val, pol_kern.polynomial)
+                    print("c= "+str(c_val)+" poly("+str(2)+")")
+                    svm.exec()
+
+                    pol_kern = Kernel(d=3)
+                    svm = SVM(DP, L, c_val, pol_kern.polynomial)
+                    print("c= "+str(c_val)+" poly("+str(3)+")")
+                    svm.exec()
+
+            print("--------RBF----------")
+            #rbf
+            for c in cs:
+                for mul in [1, 10, 100, 1000]:
+                    c_val = c * mul
+                    
+                    rbf_kern = Kernel(g=2)
+                    svm = SVM(DP, L, c_val, rbf_kern.rbf_kernel)
+                    print("c= "+str(c_val)+" rbf("+str(2)+")")
+                    svm.exec()
+                    
+                    rbf_kern = Kernel(g=3)
+                    svm = SVM(DP, L, c_val, rbf_kern.rbf_kernel)
+                    print("c= "+str(c_val)+" rbf("+str(3)+")")
+                    svm.exec()
+                    
+                    rbf_kern = Kernel(g=4)
+                    svm = SVM(DP, L, c_val, rbf_kern.rbf_kernel)
+                    print("c= "+str(c_val)+" rbf("+str(4)+")")
+                    svm.exec()
+                    
+                    rbf_kern = Kernel(g=5)
+                    svm = SVM(DP, L, c_val, rbf_kern.rbf_kernel)
+                    print("c= "+str(c_val)+" rbf("+str(5)+")")
+                    svm.exec()
+            
+            # Restore the original stdout
+            sys.stdout = original_stdout
+        """ #linear
         for c in cs:
             for mul in [1, 10, 100, 1000]:
-                c_val = c * mul
-                pol_kern = Kernel(d=2)
-                svm = SVM(D, L, c_val, pol_kern.polynomial)
-                print("c= "+str(c_val)+" poly("+str(2)+")")
-                svm.exec()
-
-                pol_kern = Kernel(d=3)
-                svm = SVM(D, L, c_val, pol_kern.polynomial)
-                print("c= "+str(c_val)+" poly("+str(3)+")")
-                svm.exec()
-
-        print("--------RBF----------")
-        #rbf
-        for c in cs:
-            for mul in [1, 10, 100, 1000]:
-                c_val = c * mul
-                
-                rbf_kern = Kernel(g=2)
-                svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
-                print("c= "+str(c_val)+" rbf("+str(2)+")")
-                svm.exec()
-                
-                rbf_kern = Kernel(g=3)
-                svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
-                print("c= "+str(c_val)+" rbf("+str(3)+")")
-                svm.exec()
-                
-                rbf_kern = Kernel(g=4)
-                svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
-                print("c= "+str(c_val)+" rbf("+str(4)+")")
-                svm.exec()
-                
-                rbf_kern = Kernel(g=5)
-                svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
-                print("c= "+str(c_val)+" rbf("+str(5)+")")
-                svm.exec()
-        
-        # Restore the original stdout
-        sys.stdout = original_stdout
-    """ #linear
-    for c in cs:
-        for mul in [1, 10, 100, 1000]:
-            c = c * mul
-            H = matrix_H_kernel(D, L, linear)
-            SVM(D, L, H, c, linear) """
+                c = c * mul
+                H = matrix_H_kernel(D, L, linear)
+                SVM(D, L, H, c, linear) """
        
 def GMM_wrapper(D, L):
     original_stdout = sys.stdout
     with open(gmm_output_file, 'w') as f:
         sys.stdout = f
-   
-        G = [1,2,4,8,16]
-        functions = [GMM_EM, GMM_EM_diag, GMM_EM_tied]
 
-        for g in G:
-            print('------ g = {} ------'.format(g))
-            for f in functions:
-                err, minDCF = Kfold_cross_validation_GMM(D, L, K, g, f)
-                # print("error: {}, using function: {} ".format(err,f.__name__))
-                # print(pred[np.argmin(err)])
+        PCA_dim =  ['No PCA'] + [aa for aa in range(2, 10)]
+        for m in PCA_dim:
+            if m == "No PCA":
+                print("NO PCA")
+                DP = D
+            else:
+                print("PCA({})".format(m))
+                DP = PCA(D, m)
+               
+            G = [1,2,4,8,16]
+            functions = [GMM_EM, GMM_EM_diag, GMM_EM_tied]
 
-                print('function = {}, minDCF: {}'.format(f.__name__,minDCF))
+            for g in G:
+                print('------ g = {} ------'.format(g))
+                for f in functions:
+                    err, minDCF = Kfold_cross_validation_GMM(DP, L, K, g, f)
+                    # print("error: {}, using function: {} ".format(err,f.__name__))
+                    # print(pred[np.argmin(err)])
 
-        # Restore the original stdout
-        sys.stdout = original_stdout
+                    print('function = {}, minDCF: {}'.format(f.__name__,minDCF))
+
+            # Restore the original stdout
+            sys.stdout = original_stdout
 
 
 
