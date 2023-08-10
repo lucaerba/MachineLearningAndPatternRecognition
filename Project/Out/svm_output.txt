@@ -1,0 +1,6 @@
+--------Polynomial----------
+c= 1e-05 poly(2)
+minDCF: 1.0
+c= 1e-05 poly(3)
+minDCF: 1.0
+c= 0.0001 poly(2)

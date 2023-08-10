@@ -82,6 +82,5 @@ class SVM:
 
         check = np.where(scores > 0, 1, -1) == z
         
-        print(" Dual loss =  " + str(-f))
-        print(" " + str(float(1 - len(check[check == True]) / len(z))) + " err")
-        
+        print("minDCF: {}".format(evaluation.minDCF(scores, self.L, 0.1, 1, 1)))
+

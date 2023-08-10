@@ -37,6 +37,7 @@ def loglikelihood(x, mu_ML, C_ML):
 
 prior_prob = np.log(np.array([[0.1],[0.9]]))
 N_classes = 2
+
 def score_matrix_MVG(DTR, LTR, DTE):
     mu_ML = {}
     C_ML = {}

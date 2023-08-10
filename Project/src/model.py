@@ -148,11 +148,13 @@ def logreg_kfold_wrapper(D, L):
 
 def SVM_wrapper(D, L):
     original_stdout = sys.stdout
-    with open(logreg_output_file, 'w') as f:
+    with open(svm_output_file, 'w') as f:
         sys.stdout = f
     
         cs = [10**-5, 2*(10**-5), 5*(10**-5)]
         D = np.append(D, np.ones((1,D.shape[1])),axis=0)
+        print("--------Polynomial----------")
+        
         #polynomial
         for c in cs:
             for mul in [1, 10, 100, 1000]:
@@ -167,7 +169,7 @@ def SVM_wrapper(D, L):
                 print("c= "+str(c_val)+" poly("+str(3)+")")
                 svm.exec()
 
-        print("------------------")
+        print("--------RBF----------")
         #rbf
         for c in cs:
             for mul in [1, 10, 100, 1000]:
@@ -203,7 +205,7 @@ def SVM_wrapper(D, L):
             SVM(D, L, H, c, linear) """
        
 def GMM_wrapper(D, L):
-     original_stdout = sys.stdout
+    original_stdout = sys.stdout
     with open(logreg_output_file, 'w') as f:
         sys.stdout = f
    
