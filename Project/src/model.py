@@ -206,7 +206,7 @@ def SVM_wrapper(D, L):
        
 def GMM_wrapper(D, L):
     original_stdout = sys.stdout
-    with open(logreg_output_file, 'w') as f:
+    with open(gmm_output_file, 'w') as f:
         sys.stdout = f
    
         G = [1,2,4,8,16]
