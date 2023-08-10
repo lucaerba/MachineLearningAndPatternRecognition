@@ -120,68 +120,81 @@ def TNB_kfold_wrapper(D, L):
         sys.stdout = original_stdout
 
 def logreg_kfold_wrapper(D, L):
-    PCA_dim =  ['No PCA'] + [aa for aa in range(2, 10)]
-    lam = [10 ** -6, 10 ** -5, 10 ** -4, 10 ** -3, 10 ** -2, 10 ** -1, 1, 10, 100, 1000, 10000]
-    for m in PCA_dim:
-        if m == 'No PCA':
-            print('-- Logistic Regression -- (no PCA)')
-        else:
-            print('-- Logistic Regression -- (PCA = {})'.format(m))
-        for l in lam:
-                if m == 'No PCA':
-                    _, _, minDCF, l = logreg_wrapper(D, L, l)
-                    print('LogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
-                    _, _, minDCF, l = QUAD_log_reg(D, L, l)
-                    print('QUADLogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
-                else:
-                    DP = PCA(D, m)
-                    _, _, minDCF, l = logreg_wrapper(DP, L, l)
-                    print('LogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
-                    _, _, minDCF, l = QUAD_log_reg(DP, L, l)
-                    print('QUADLogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
+    original_stdout = sys.stdout
+    with open(logreg_output_file, 'w') as f:
+        sys.stdout = f
     
+        PCA_dim =  ['No PCA'] + [aa for aa in range(2, 10)]
+        lam = [10 ** -6, 10 ** -5, 10 ** -4, 10 ** -3, 10 ** -2, 10 ** -1, 1, 10, 100, 1000, 10000]
+        for m in PCA_dim:
+            if m == 'No PCA':
+                print('-- Logistic Regression -- (no PCA)')
+            else:
+                print('-- Logistic Regression -- (PCA = {})'.format(m))
+            for l in lam:
+                    if m == 'No PCA':
+                        _, _, minDCF, l = logreg_wrapper(D, L, l)
+                        print('LogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
+                        _, _, minDCF, l = QUAD_log_reg(D, L, l)
+                        print('QUADLogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
+                    else:
+                        DP = PCA(D, m)
+                        _, _, minDCF, l = logreg_wrapper(DP, L, l)
+                        print('LogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
+                        _, _, minDCF, l = QUAD_log_reg(DP, L, l)
+                        print('QUADLogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
+        # Restore the original stdout
+        sys.stdout = original_stdout
+
 def SVM_wrapper(D, L):
-    cs = [10**-5, 2*(10**-5), 5*(10**-5)]
-    D = np.append(D, np.ones((1,D.shape[1])),axis=0)
-    #polynomial
-    for c in cs:
-        for mul in [1, 10, 100, 1000]:
-            c_val = c * mul
-            pol_kern = Kernel(d=2)
-            svm = SVM(D, L, c_val, pol_kern.polynomial)
-            print("c= "+str(c_val)+" poly("+str(2)+")")
-            svm.exec()
+    original_stdout = sys.stdout
+    with open(logreg_output_file, 'w') as f:
+        sys.stdout = f
+    
+        cs = [10**-5, 2*(10**-5), 5*(10**-5)]
+        D = np.append(D, np.ones((1,D.shape[1])),axis=0)
+        #polynomial
+        for c in cs:
+            for mul in [1, 10, 100, 1000]:
+                c_val = c * mul
+                pol_kern = Kernel(d=2)
+                svm = SVM(D, L, c_val, pol_kern.polynomial)
+                print("c= "+str(c_val)+" poly("+str(2)+")")
+                svm.exec()
 
-            pol_kern = Kernel(d=3)
-            svm = SVM(D, L, c_val, pol_kern.polynomial)
-            print("c= "+str(c_val)+" poly("+str(3)+")")
-            svm.exec()
+                pol_kern = Kernel(d=3)
+                svm = SVM(D, L, c_val, pol_kern.polynomial)
+                print("c= "+str(c_val)+" poly("+str(3)+")")
+                svm.exec()
 
-    print("------------------")
-    #rbf
-    for c in cs:
-        for mul in [1, 10, 100, 1000]:
-            c_val = c * mul
-            
-            rbf_kern = Kernel(g=2)
-            svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
-            print("c= "+str(c_val)+" rbf("+str(2)+")")
-            svm.exec()
-            
-            rbf_kern = Kernel(g=3)
-            svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
-            print("c= "+str(c_val)+" rbf("+str(3)+")")
-            svm.exec()
-            
-            rbf_kern = Kernel(g=4)
-            svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
-            print("c= "+str(c_val)+" rbf("+str(4)+")")
-            svm.exec()
-            
-            rbf_kern = Kernel(g=5)
-            svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
-            print("c= "+str(c_val)+" rbf("+str(5)+")")
-            svm.exec()
+        print("------------------")
+        #rbf
+        for c in cs:
+            for mul in [1, 10, 100, 1000]:
+                c_val = c * mul
+                
+                rbf_kern = Kernel(g=2)
+                svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
+                print("c= "+str(c_val)+" rbf("+str(2)+")")
+                svm.exec()
+                
+                rbf_kern = Kernel(g=3)
+                svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
+                print("c= "+str(c_val)+" rbf("+str(3)+")")
+                svm.exec()
+                
+                rbf_kern = Kernel(g=4)
+                svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
+                print("c= "+str(c_val)+" rbf("+str(4)+")")
+                svm.exec()
+                
+                rbf_kern = Kernel(g=5)
+                svm = SVM(D, L, c_val, rbf_kern.rbf_kernel)
+                print("c= "+str(c_val)+" rbf("+str(5)+")")
+                svm.exec()
+        
+        # Restore the original stdout
+        sys.stdout = original_stdout
     """ #linear
     for c in cs:
         for mul in [1, 10, 100, 1000]:
@@ -190,17 +203,24 @@ def SVM_wrapper(D, L):
             SVM(D, L, H, c, linear) """
        
 def GMM_wrapper(D, L):
-    G = [1,2,4,8,16]
-    functions = [GMM_EM, GMM_EM_diag, GMM_EM_tied]
+     original_stdout = sys.stdout
+    with open(logreg_output_file, 'w') as f:
+        sys.stdout = f
+   
+        G = [1,2,4,8,16]
+        functions = [GMM_EM, GMM_EM_diag, GMM_EM_tied]
 
-    for g in G:
-        print('------ g = {} ------'.format(g))
-        for f in functions:
-            err, minDCF = Kfold_cross_validation_GMM(D, L, K, g, f)
-            # print("error: {}, using function: {} ".format(err,f.__name__))
-            # print(pred[np.argmin(err)])
+        for g in G:
+            print('------ g = {} ------'.format(g))
+            for f in functions:
+                err, minDCF = Kfold_cross_validation_GMM(D, L, K, g, f)
+                # print("error: {}, using function: {} ".format(err,f.__name__))
+                # print(pred[np.argmin(err)])
 
-            print('function = {}, minDCF: {}'.format(f.__name__,minDCF))
+                print('function = {}, minDCF: {}'.format(f.__name__,minDCF))
+
+        # Restore the original stdout
+        sys.stdout = original_stdout
 
 
 

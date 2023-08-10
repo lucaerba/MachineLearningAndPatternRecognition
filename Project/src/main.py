@@ -25,24 +25,13 @@ def main(seed=1,K=5):
 
     #train
     
-    # Create threads for each function
-    threads = []
-
-    threads.append(threading.Thread(target=model.logreg_kfold_wrapper, args=(D, L)))
-    threads.append(threading.Thread(target=model.MVG_kfold_wrapper, args=(D, L)))
-    threads.append(threading.Thread(target=model.NB_kfold_wrapper, args=(D, L)))
-    threads.append(threading.Thread(target=model.TMVG_kfold_wrapper, args=(D, L)))
-    threads.append(threading.Thread(target=model.TNB_kfold_wrapper, args=(D, L)))
-    threads.append(threading.Thread(target=model.SVM_wrapper, args=(D, L)))
-    threads.append(threading.Thread(target=model.GMM_wrapper, args=(D, L)))
-    
-    # Start the threads
-    for thread in threads:
-        thread.start()
-
-    # Wait for all threads to finish
-    for thread in threads:
-        thread.join()
+    model.logreg_kfold_wrapper(D, L)
+    model.MVG_kfold_wrapper(D, L)
+    model.NB_kfold_wrapper(D, L)
+    model.TMVG_kfold_wrapper(D, L)
+    model.TNB_kfold_wrapper(D, L)
+    model.SVM_wrapper(D, L)
+    model.GMM_wrapper(D, L)
      
     #calibration
 
