@@ -1,6 +1,6 @@
 .vscode/
 .vscode/*
-./Project/src/__pycache__/*
+Project/src/__pycache__/*
 OpenAi/main.py
 OpenAi/key.txt
 Project/src/__pycache__/evaluation.cpython-310.py
