@@ -1,0 +1,11 @@
+Z-Norm on best GMM configuration
+Target Class GMM: full, Non-Target Class GMM: tied
+Target class with 1 components - GMMfull
+Non-Target class with 64 components - GMMtied
+\begin{tabular}{cccc}
+
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+
+None & 0.296 & 0.074 & 0.185 \\
+
+\end{tabular}

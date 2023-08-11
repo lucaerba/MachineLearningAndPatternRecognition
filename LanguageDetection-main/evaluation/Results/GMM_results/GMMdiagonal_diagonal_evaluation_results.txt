@@ -1,0 +1,91 @@
+Target Class GMM: diagonal, Non-Target Class GMM: diagonal
+Target class with 1 components - GMMdiagonal
+Non-Target class with 4 components - GMMdiagonal
+Z-Norm:False
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |       0.474       |       0.116       |   0.295   |
+|  5   |       0.496       |       0.121       |   0.308   |
++------+-------------------+-------------------+-----------+
+Target class with 1 components - GMMdiagonal
+Non-Target class with 8 components - GMMdiagonal
+Z-Norm:False
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |        0.41       |       0.108       |   0.259   |
+|  5   |       0.485       |       0.118       |   0.301   |
++------+-------------------+-------------------+-----------+
+Target class with 1 components - GMMdiagonal
+Non-Target class with 16 components - GMMdiagonal
+Z-Norm:False
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |        0.39       |       0.112       |   0.251   |
+|  5   |       0.456       |       0.116       |   0.286   |
++------+-------------------+-------------------+-----------+
+Target class with 1 components - GMMdiagonal
+Non-Target class with 32 components - GMMdiagonal
+Z-Norm:False
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |        0.38       |       0.106       |   0.243   |
+|  5   |       0.386       |        0.11       |   0.248   |
++------+-------------------+-------------------+-----------+
+Target class with 1 components - GMMdiagonal
+Non-Target class with 64 components - GMMdiagonal
+Z-Norm:False
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |       0.382       |       0.107       |   0.245   |
+|  5   |       0.379       |       0.103       |   0.241   |
++------+-------------------+-------------------+-----------+
+Target class with 1 components - GMMdiagonal
+Non-Target class with 4 components - GMMdiagonal
+Z-Norm:True
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |       0.485       |       0.118       |   0.301   |
+|  5   |       0.501       |       0.125       |   0.313   |
++------+-------------------+-------------------+-----------+
+Target class with 1 components - GMMdiagonal
+Non-Target class with 8 components - GMMdiagonal
+Z-Norm:True
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |       0.414       |       0.113       |   0.263   |
+|  5   |       0.459       |       0.119       |   0.289   |
++------+-------------------+-------------------+-----------+
+Target class with 1 components - GMMdiagonal
+Non-Target class with 16 components - GMMdiagonal
+Z-Norm:True
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |       0.404       |       0.111       |   0.257   |
+|  5   |       0.444       |       0.119       |   0.281   |
++------+-------------------+-------------------+-----------+
+Target class with 1 components - GMMdiagonal
+Non-Target class with 32 components - GMMdiagonal
+Z-Norm:True
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |       0.391       |       0.104       |   0.247   |
+|  5   |       0.425       |       0.107       |   0.266   |
++------+-------------------+-------------------+-----------+
+Target class with 1 components - GMMdiagonal
+Non-Target class with 64 components - GMMdiagonal
+Z-Norm:True
++------+-------------------+-------------------+-----------+
+| PCA  | minDCF (pi = 0.1) | minDCF (pi = 0.5) | min Cprim |
++------+-------------------+-------------------+-----------+
+| None |       0.391       |       0.107       |   0.249   |
+|  5   |       0.405       |       0.106       |   0.255   |
++------+-------------------+-------------------+-----------+

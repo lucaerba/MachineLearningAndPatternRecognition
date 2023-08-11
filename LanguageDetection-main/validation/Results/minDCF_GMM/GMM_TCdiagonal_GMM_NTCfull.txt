@@ -1,0 +1,73 @@
+Target Class GMM: diagonal, Non-Target Class GMM: full
+Target class with 1 components - GMMdiagonal
+Non-Target class with 8 components - GMMfull
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.386 & 0.086 & 0.236 \\
+5 & 0.375 & 0.086 & 0.231 \\
+4 & 0.439 & 0.1 & 0.269 \\
+3 & 0.457 & 0.109 & 0.283 \\
+\end{tabular}
+Target class with 1 components - GMMdiagonal
+Non-Target class with 16 components - GMMfull
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.381 & 0.088 & 0.234 \\
+5 & 0.365 & 0.084 & 0.224 \\
+4 & 0.432 & 0.098 & 0.265 \\
+3 & 0.461 & 0.111 & 0.286 \\
+\end{tabular}
+Target class with 1 components - GMMdiagonal
+Non-Target class with 32 components - GMMfull
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.36 & 0.087 & 0.223 \\
+5 & 0.336 & 0.08 & 0.208 \\
+4 & 0.408 & 0.101 & 0.255 \\
+3 & 0.432 & 0.112 & 0.272 \\
+\end{tabular}
+Target class with 1 components - GMMdiagonal
+Non-Target class with 64 components - GMMfull
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.358 & 0.088 & 0.223 \\
+5 & 0.386 & 0.079 & 0.233 \\
+4 & 0.421 & 0.105 & 0.263 \\
+3 & 0.445 & 0.11 & 0.278 \\
+\end{tabular}
+Target class with 2 components - GMMdiagonal
+Non-Target class with 8 components - GMMfull
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.388 & 0.086 & 0.237 \\
+5 & 0.387 & 0.093 & 0.24 \\
+4 & 0.442 & 0.106 & 0.274 \\
+3 & 0.464 & 0.112 & 0.288 \\
+\end{tabular}
+Target class with 2 components - GMMdiagonal
+Non-Target class with 16 components - GMMfull
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.387 & 0.088 & 0.237 \\
+5 & 0.379 & 0.086 & 0.233 \\
+4 & 0.427 & 0.099 & 0.263 \\
+3 & 0.463 & 0.108 & 0.286 \\
+\end{tabular}
+Target class with 2 components - GMMdiagonal
+Non-Target class with 32 components - GMMfull
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.373 & 0.088 & 0.231 \\
+5 & 0.34 & 0.079 & 0.209 \\
+4 & 0.41 & 0.101 & 0.256 \\
+3 & 0.423 & 0.112 & 0.267 \\
+\end{tabular}
+Target class with 2 components - GMMdiagonal
+Non-Target class with 64 components - GMMfull
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.356 & 0.088 & 0.222 \\
+5 & 0.373 & 0.082 & 0.228 \\
+4 & 0.418 & 0.109 & 0.264 \\
+3 & 0.437 & 0.109 & 0.273 \\
+\end{tabular}

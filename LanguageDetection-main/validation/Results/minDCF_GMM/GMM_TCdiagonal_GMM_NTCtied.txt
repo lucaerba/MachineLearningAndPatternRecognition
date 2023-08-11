@@ -1,0 +1,73 @@
+Target Class GMM: diagonal, Non-Target Class GMM: tied
+Target class with 1 components - GMMdiagonal
+Non-Target class with 8 components - GMMtied
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.402 & 0.096 & 0.249 \\
+5 & 0.431 & 0.107 & 0.269 \\
+4 & 0.475 & 0.11 & 0.293 \\
+3 & 0.519 & 0.112 & 0.315 \\
+\end{tabular}
+Target class with 1 components - GMMdiagonal
+Non-Target class with 16 components - GMMtied
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.371 & 0.091 & 0.231 \\
+5 & 0.367 & 0.09 & 0.228 \\
+4 & 0.452 & 0.109 & 0.28 \\
+3 & 0.465 & 0.114 & 0.289 \\
+\end{tabular}
+Target class with 1 components - GMMdiagonal
+Non-Target class with 32 components - GMMtied
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.341 & 0.079 & 0.21 \\
+5 & 0.317 & 0.09 & 0.203 \\
+4 & 0.415 & 0.1 & 0.257 \\
+3 & 0.438 & 0.112 & 0.275 \\
+\end{tabular}
+Target class with 1 components - GMMdiagonal
+Non-Target class with 64 components - GMMtied
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.301 & 0.076 & 0.189 \\
+5 & 0.33 & 0.073 & 0.201 \\
+4 & 0.398 & 0.101 & 0.25 \\
+3 & 0.449 & 0.108 & 0.279 \\
+\end{tabular}
+Target class with 2 components - GMMdiagonal
+Non-Target class with 8 components - GMMtied
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.403 & 0.096 & 0.25 \\
+5 & 0.458 & 0.109 & 0.283 \\
+4 & 0.472 & 0.113 & 0.293 \\
+3 & 0.507 & 0.111 & 0.309 \\
+\end{tabular}
+Target class with 2 components - GMMdiagonal
+Non-Target class with 16 components - GMMtied
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.366 & 0.09 & 0.228 \\
+5 & 0.369 & 0.092 & 0.231 \\
+4 & 0.442 & 0.105 & 0.274 \\
+3 & 0.463 & 0.115 & 0.289 \\
+\end{tabular}
+Target class with 2 components - GMMdiagonal
+Non-Target class with 32 components - GMMtied
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.337 & 0.078 & 0.208 \\
+5 & 0.324 & 0.089 & 0.206 \\
+4 & 0.412 & 0.101 & 0.256 \\
+3 & 0.438 & 0.113 & 0.275 \\
+\end{tabular}
+Target class with 2 components - GMMdiagonal
+Non-Target class with 64 components - GMMtied
+\begin{tabular}{cccc}
+PCA & minDCF (pi = 0.1) & minDCF (pi = 0.5) & Cprim \\
+None & 0.314 & 0.076 & 0.195 \\
+5 & 0.324 & 0.073 & 0.198 \\
+4 & 0.401 & 0.098 & 0.249 \\
+3 & 0.441 & 0.11 & 0.275 \\
+\end{tabular}
