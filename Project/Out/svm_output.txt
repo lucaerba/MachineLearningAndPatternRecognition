@@ -1,6 +1,542 @@
+NO PCA
 --------Polynomial----------
 c= 1e-05 poly(2)
 minDCF: 1.0
 c= 1e-05 poly(3)
 minDCF: 1.0
 c= 0.0001 poly(2)
+minDCF: 1.0
+c= 0.0001 poly(3)
+minDCF: 1.0
+c= 0.001 poly(2)
+minDCF: 1.0
+c= 0.001 poly(3)
+minDCF: 1.0
+c= 0.01 poly(2)
+minDCF: 1.0
+c= 0.01 poly(3)
+minDCF: 1.0
+c= 2e-05 poly(2)
+minDCF: 1.0
+c= 2e-05 poly(3)
+minDCF: 1.0
+c= 0.0002 poly(2)
+minDCF: 1.0
+c= 0.0002 poly(3)
+minDCF: 1.0
+c= 0.002 poly(2)
+minDCF: 1.0
+c= 0.002 poly(3)
+minDCF: 1.0
+c= 0.02 poly(2)
+minDCF: 1.0
+c= 0.02 poly(3)
+minDCF: 1.0
+c= 5e-05 poly(2)
+minDCF: 1.0
+c= 5e-05 poly(3)
+minDCF: 1.0
+c= 0.0005 poly(2)
+minDCF: 1.0
+c= 0.0005 poly(3)
+minDCF: 1.0
+c= 0.005 poly(2)
+minDCF: 1.0
+c= 0.005 poly(3)
+minDCF: 1.0
+c= 0.05 poly(2)
+minDCF: 1.0
+c= 0.05 poly(3)
+minDCF: 0.9993333333333333
+--------RBF----------
+c= 1e-05 rbf(2)
+minDCF: 1.0
+c= 1e-05 rbf(3)
+minDCF: 1.0
+c= 1e-05 rbf(4)
+minDCF: 1.0
+c= 1e-05 rbf(5)
+minDCF: 1.0
+c= 0.0001 rbf(2)
+minDCF: 1.0
+c= 0.0001 rbf(3)
+minDCF: 1.0
+c= 0.0001 rbf(4)
+minDCF: 1.0
+c= 0.0001 rbf(5)
+minDCF: 1.0
+c= 0.001 rbf(2)
+minDCF: 1.0
+c= 0.001 rbf(3)
+minDCF: 1.0
+c= 0.001 rbf(4)
+minDCF: 1.0
+c= 0.001 rbf(5)
+minDCF: 1.0
+c= 0.01 rbf(2)
+minDCF: 1.0
+c= 0.01 rbf(3)
+minDCF: 1.0
+c= 0.01 rbf(4)
+minDCF: 1.0
+c= 0.01 rbf(5)
+minDCF: 1.0
+c= 2e-05 rbf(2)
+minDCF: 1.0
+c= 2e-05 rbf(3)
+minDCF: 1.0
+c= 2e-05 rbf(4)
+minDCF: 1.0
+c= 2e-05 rbf(5)
+minDCF: 1.0
+c= 0.0002 rbf(2)
+minDCF: 1.0
+c= 0.0002 rbf(3)
+minDCF: 1.0
+c= 0.0002 rbf(4)
+minDCF: 1.0
+c= 0.0002 rbf(5)
+minDCF: 1.0
+c= 0.002 rbf(2)
+minDCF: 1.0
+c= 0.002 rbf(3)
+minDCF: 1.0
+c= 0.002 rbf(4)
+minDCF: 1.0
+c= 0.002 rbf(5)
+minDCF: 1.0
+c= 0.02 rbf(2)
+minDCF: 1.0
+c= 0.02 rbf(3)
+minDCF: 1.0
+c= 0.02 rbf(4)
+minDCF: 1.0
+c= 0.02 rbf(5)
+minDCF: 1.0
+c= 5e-05 rbf(2)
+minDCF: 1.0
+c= 5e-05 rbf(3)
+minDCF: 1.0
+c= 5e-05 rbf(4)
+minDCF: 1.0
+c= 5e-05 rbf(5)
+minDCF: 1.0
+c= 0.0005 rbf(2)
+minDCF: 1.0
+c= 0.0005 rbf(3)
+minDCF: 1.0
+c= 0.0005 rbf(4)
+minDCF: 1.0
+c= 0.0005 rbf(5)
+minDCF: 1.0
+c= 0.005 rbf(2)
+minDCF: 1.0
+c= 0.005 rbf(3)
+minDCF: 1.0
+c= 0.005 rbf(4)
+minDCF: 1.0
+c= 0.005 rbf(5)
+minDCF: 1.0
+c= 0.05 rbf(2)
+minDCF: 1.0
+c= 0.05 rbf(3)
+minDCF: 1.0
+c= 0.05 rbf(4)
+minDCF: 1.0
+c= 0.05 rbf(5)
+minDCF: 1.0
+PCA(2)
+--------Polynomial----------
+c= 1e-05 poly(2)
+minDCF: 1.0
+c= 1e-05 poly(3)
+minDCF: 1.0
+c= 0.0001 poly(2)
+minDCF: 0.9991666666666668
+c= 0.0001 poly(3)
+minDCF: 0.998
+c= 0.001 poly(2)
+minDCF: 0.9986666666666667
+c= 0.001 poly(3)
+minDCF: 0.9920000000000001
+c= 0.01 poly(2)
+minDCF: 0.9998333333333334
+c= 0.01 poly(3)
+minDCF: 0.9965000000000002
+c= 2e-05 poly(2)
+minDCF: 0.9961666666666666
+c= 2e-05 poly(3)
+minDCF: 0.996
+c= 0.0002 poly(2)
+minDCF: 0.9991666666666668
+c= 0.0002 poly(3)
+minDCF: 0.9925
+c= 0.002 poly(2)
+minDCF: 0.9993333333333333
+c= 0.002 poly(3)
+minDCF: 0.998
+c= 0.02 poly(2)
+minDCF: 0.9853333333333333
+c= 0.02 poly(3)
+minDCF: 0.9945
+c= 5e-05 poly(2)
+minDCF: 1.0
+c= 5e-05 poly(3)
+minDCF: 0.9969999999999999
+c= 0.0005 poly(2)
+minDCF: 1.0
+c= 0.0005 poly(3)
+minDCF: 0.988
+c= 0.005 poly(2)
+minDCF: 1.0
+c= 0.005 poly(3)
+minDCF: 0.9946666666666667
+c= 0.05 poly(2)
+minDCF: 1.0
+c= 0.05 poly(3)
+minDCF: 0.9946666666666667
+--------RBF----------
+c= 1e-05 rbf(2)
+minDCF: 1.0
+c= 1e-05 rbf(3)
+minDCF: 1.0
+c= 1e-05 rbf(4)
+minDCF: 1.0
+c= 1e-05 rbf(5)
+minDCF: 1.0
+c= 0.0001 rbf(2)
+minDCF: 1.0
+c= 0.0001 rbf(3)
+minDCF: 1.0
+c= 0.0001 rbf(4)
+minDCF: 1.0
+c= 0.0001 rbf(5)
+minDCF: 1.0
+c= 0.001 rbf(2)
+minDCF: 1.0
+c= 0.001 rbf(3)
+minDCF: 1.0
+c= 0.001 rbf(4)
+minDCF: 1.0
+c= 0.001 rbf(5)
+minDCF: 1.0
+c= 0.01 rbf(2)
+minDCF: 1.0
+c= 0.01 rbf(3)
+minDCF: 1.0
+c= 0.01 rbf(4)
+minDCF: 1.0
+c= 0.01 rbf(5)
+minDCF: 1.0
+c= 2e-05 rbf(2)
+minDCF: 1.0
+c= 2e-05 rbf(3)
+minDCF: 1.0
+c= 2e-05 rbf(4)
+minDCF: 1.0
+c= 2e-05 rbf(5)
+minDCF: 1.0
+c= 0.0002 rbf(2)
+minDCF: 1.0
+c= 0.0002 rbf(3)
+minDCF: 1.0
+c= 0.0002 rbf(4)
+minDCF: 1.0
+c= 0.0002 rbf(5)
+minDCF: 1.0
+c= 0.002 rbf(2)
+minDCF: 1.0
+c= 0.002 rbf(3)
+minDCF: 1.0
+c= 0.002 rbf(4)
+minDCF: 1.0
+c= 0.002 rbf(5)
+minDCF: 1.0
+c= 0.02 rbf(2)
+minDCF: 1.0
+c= 0.02 rbf(3)
+minDCF: 1.0
+c= 0.02 rbf(4)
+minDCF: 1.0
+c= 0.02 rbf(5)
+minDCF: 1.0
+c= 5e-05 rbf(2)
+minDCF: 1.0
+c= 5e-05 rbf(3)
+minDCF: 1.0
+c= 5e-05 rbf(4)
+minDCF: 1.0
+c= 5e-05 rbf(5)
+minDCF: 1.0
+c= 0.0005 rbf(2)
+minDCF: 1.0
+c= 0.0005 rbf(3)
+minDCF: 1.0
+c= 0.0005 rbf(4)
+minDCF: 1.0
+c= 0.0005 rbf(5)
+minDCF: 1.0
+c= 0.005 rbf(2)
+minDCF: 1.0
+c= 0.005 rbf(3)
+minDCF: 1.0
+c= 0.005 rbf(4)
+minDCF: 1.0
+c= 0.005 rbf(5)
+minDCF: 1.0
+c= 0.05 rbf(2)
+minDCF: 1.0
+c= 0.05 rbf(3)
+minDCF: 1.0
+c= 0.05 rbf(4)
+minDCF: 1.0
+c= 0.05 rbf(5)
+minDCF: 1.0
+PCA(3)
+--------Polynomial----------
+c= 1e-05 poly(2)
+minDCF: 1.0
+c= 1e-05 poly(3)
+minDCF: 1.0
+c= 0.0001 poly(2)
+minDCF: 1.0
+c= 0.0001 poly(3)
+minDCF: 0.9871666666666667
+c= 0.001 poly(2)
+minDCF: 0.998
+c= 0.001 poly(3)
+minDCF: 0.9941666666666668
+c= 0.01 poly(2)
+minDCF: 0.9993333333333333
+c= 0.01 poly(3)
+minDCF: 1.0
+c= 2e-05 poly(2)
+minDCF: 0.9966666666666668
+c= 2e-05 poly(3)
+minDCF: 0.9978333333333333
+c= 0.0002 poly(2)
+minDCF: 1.0
+c= 0.0002 poly(3)
+minDCF: 0.9926666666666667
+c= 0.002 poly(2)
+minDCF: 0.9993333333333333
+c= 0.002 poly(3)
+minDCF: 0.996
+c= 0.02 poly(2)
+minDCF: 1.0
+c= 0.02 poly(3)
+minDCF: 0.9896666666666667
+c= 5e-05 poly(2)
+minDCF: 0.998
+c= 5e-05 poly(3)
+minDCF: 0.9976666666666667
+c= 0.0005 poly(2)
+minDCF: 0.9986666666666667
+c= 0.0005 poly(3)
+minDCF: 0.9873333333333334
+c= 0.005 poly(2)
+minDCF: 1.0
+c= 0.005 poly(3)
+minDCF: 0.996
+c= 0.05 poly(2)
+minDCF: 0.9993333333333333
+c= 0.05 poly(3)
+minDCF: 0.9919999999999999
+--------RBF----------
+c= 1e-05 rbf(2)
+minDCF: 1.0
+c= 1e-05 rbf(3)
+minDCF: 1.0
+c= 1e-05 rbf(4)
+minDCF: 1.0
+c= 1e-05 rbf(5)
+minDCF: 1.0
+c= 0.0001 rbf(2)
+minDCF: 1.0
+c= 0.0001 rbf(3)
+minDCF: 1.0
+c= 0.0001 rbf(4)
+minDCF: 1.0
+c= 0.0001 rbf(5)
+minDCF: 1.0
+c= 0.001 rbf(2)
+minDCF: 1.0
+c= 0.001 rbf(3)
+minDCF: 1.0
+c= 0.001 rbf(4)
+minDCF: 1.0
+c= 0.001 rbf(5)
+minDCF: 1.0
+c= 0.01 rbf(2)
+minDCF: 1.0
+c= 0.01 rbf(3)
+minDCF: 1.0
+c= 0.01 rbf(4)
+minDCF: 1.0
+c= 0.01 rbf(5)
+minDCF: 1.0
+c= 2e-05 rbf(2)
+minDCF: 1.0
+c= 2e-05 rbf(3)
+minDCF: 1.0
+c= 2e-05 rbf(4)
+minDCF: 1.0
+c= 2e-05 rbf(5)
+minDCF: 1.0
+c= 0.0002 rbf(2)
+minDCF: 1.0
+c= 0.0002 rbf(3)
+minDCF: 1.0
+c= 0.0002 rbf(4)
+minDCF: 1.0
+c= 0.0002 rbf(5)
+minDCF: 1.0
+c= 0.002 rbf(2)
+minDCF: 1.0
+c= 0.002 rbf(3)
+minDCF: 1.0
+c= 0.002 rbf(4)
+minDCF: 1.0
+c= 0.002 rbf(5)
+minDCF: 1.0
+c= 0.02 rbf(2)
+minDCF: 1.0
+c= 0.02 rbf(3)
+minDCF: 1.0
+c= 0.02 rbf(4)
+minDCF: 1.0
+c= 0.02 rbf(5)
+minDCF: 1.0
+c= 5e-05 rbf(2)
+minDCF: 1.0
+c= 5e-05 rbf(3)
+minDCF: 1.0
+c= 5e-05 rbf(4)
+minDCF: 1.0
+c= 5e-05 rbf(5)
+minDCF: 1.0
+c= 0.0005 rbf(2)
+minDCF: 1.0
+c= 0.0005 rbf(3)
+minDCF: 1.0
+c= 0.0005 rbf(4)
+minDCF: 1.0
+c= 0.0005 rbf(5)
+minDCF: 1.0
+c= 0.005 rbf(2)
+minDCF: 1.0
+c= 0.005 rbf(3)
+minDCF: 1.0
+c= 0.005 rbf(4)
+minDCF: 1.0
+c= 0.005 rbf(5)
+minDCF: 1.0
+c= 0.05 rbf(2)
+minDCF: 1.0
+c= 0.05 rbf(3)
+minDCF: 1.0
+c= 0.05 rbf(4)
+minDCF: 1.0
+c= 0.05 rbf(5)
+minDCF: 1.0
+PCA(4)
+--------Polynomial----------
+c= 1e-05 poly(2)
+minDCF: 1.0
+c= 1e-05 poly(3)
+minDCF: 1.0
+c= 0.0001 poly(2)
+minDCF: 1.0
+c= 0.0001 poly(3)
+minDCF: 1.0
+c= 0.001 poly(2)
+minDCF: 1.0
+c= 0.001 poly(3)
+minDCF: 1.0
+c= 0.01 poly(2)
+minDCF: 1.0
+c= 0.01 poly(3)
+minDCF: 1.0
+c= 2e-05 poly(2)
+minDCF: 1.0
+c= 2e-05 poly(3)
+minDCF: 1.0
+c= 0.0002 poly(2)
+minDCF: 1.0
+c= 0.0002 poly(3)
+minDCF: 1.0
+c= 0.002 poly(2)
+minDCF: 1.0
+c= 0.002 poly(3)
+minDCF: 1.0
+c= 0.02 poly(2)
+minDCF: 1.0
+c= 0.02 poly(3)
+minDCF: 0.9926666666666667
+c= 5e-05 poly(2)
+minDCF: 1.0
+c= 5e-05 poly(3)
+minDCF: 1.0
+c= 0.0005 poly(2)
+minDCF: 1.0
+c= 0.0005 poly(3)
+minDCF: 1.0
+c= 0.005 poly(2)
+minDCF: 1.0
+c= 0.005 poly(3)
+minDCF: 1.0
+c= 0.05 poly(2)
+minDCF: 1.0
+c= 0.05 poly(3)
+minDCF: 1.0
+--------RBF----------
+c= 1e-05 rbf(2)
+minDCF: 1.0
+c= 1e-05 rbf(3)
+minDCF: 1.0
+c= 1e-05 rbf(4)
+minDCF: 1.0
+c= 1e-05 rbf(5)
+minDCF: 1.0
+c= 0.0001 rbf(2)
+minDCF: 1.0
+c= 0.0001 rbf(3)
+minDCF: 1.0
+c= 0.0001 rbf(4)
+minDCF: 1.0
+c= 0.0001 rbf(5)
+minDCF: 1.0
+c= 0.001 rbf(2)
+minDCF: 1.0
+c= 0.001 rbf(3)
+minDCF: 1.0
+c= 0.001 rbf(4)
+minDCF: 1.0
+c= 0.001 rbf(5)
+minDCF: 1.0
+c= 0.01 rbf(2)
+minDCF: 1.0
+c= 0.01 rbf(3)
+minDCF: 1.0
+c= 0.01 rbf(4)
+minDCF: 1.0
+c= 0.01 rbf(5)
+minDCF: 1.0
+c= 2e-05 rbf(2)
+minDCF: 1.0
+c= 2e-05 rbf(3)
+minDCF: 1.0
+c= 2e-05 rbf(4)
+minDCF: 1.0
+c= 2e-05 rbf(5)
+minDCF: 1.0
+c= 0.0002 rbf(2)
+minDCF: 1.0
+c= 0.0002 rbf(3)
+minDCF: 1.0
+c= 0.0002 rbf(4)
+minDCF: 1.0
+c= 0.0002 rbf(5)
+minDCF: 1.0
+c= 0.002 rbf(2)
+minDCF: 1.0

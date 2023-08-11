@@ -25,12 +25,19 @@ def main(seed=1,K=5):
 
     #train
     
-    model.logreg_kfold_wrapper(D, L)
-    model.MVG_kfold_wrapper(D, L)
-    model.NB_kfold_wrapper(D, L)
-    model.TMVG_kfold_wrapper(D, L)
-    model.TNB_kfold_wrapper(D, L)
-    model.GMM_wrapper(D, L)
+    # print("logreg...")
+    # model.logreg_kfold_wrapper(D, L)
+    # print("MVG...")
+    # model.MVG_kfold_wrapper(D, L)
+    # print("NB...")
+    # model.NB_kfold_wrapper(D, L)
+    # print("TMVG...")
+    # model.TMVG_kfold_wrapper(D, L)
+    # print("TNB...")
+    # model.TNB_kfold_wrapper(D, L)
+    # print("GMM...")
+    # model.GMM_wrapper(D, L)
+    print("SVM...")
     model.SVM_wrapper(D, L)
      
     #calibration

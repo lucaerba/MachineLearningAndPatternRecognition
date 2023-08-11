@@ -204,8 +204,8 @@ def SVM_wrapper(D, L):
                     print("c= "+str(c_val)+" rbf("+str(5)+")")
                     svm.exec()
             
-            # Restore the original stdout
-            sys.stdout = original_stdout
+        # Restore the original stdout
+        sys.stdout = original_stdout
         """ #linear
         for c in cs:
             for mul in [1, 10, 100, 1000]:
@@ -239,8 +239,8 @@ def GMM_wrapper(D, L):
 
                     print('function = {}, minDCF: {}'.format(f.__name__,minDCF))
 
-            # Restore the original stdout
-            sys.stdout = original_stdout
+        # Restore the original stdout
+        sys.stdout = original_stdout
 
 
 
