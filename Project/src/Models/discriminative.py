@@ -77,7 +77,7 @@ def logreg_wrapper(D,L,l,seed=0):
 
 def vec(x):
     x = vcol(x)
-    return np.vstack(np.dot(x,x.T))
+    return np.dot(x,x.T).flatten()
 
 def QUAD_log_reg(D,L,l,seed=0):
     nSamp = int(D.shape[1] / K)
@@ -98,10 +98,10 @@ def QUAD_log_reg(D,L,l,seed=0):
         LTR = L[idxTrain]
         LTE = L[idxTest]
 
-        DTR_vec = np.apply_along_axis(vec, 0, DTR)[0,:,:]
+        DTR_vec = np.apply_along_axis(vec, 0, DTR)
         PHI_DTR = np.vstack([DTR_vec, DTR])
 
-        DTE_vec = np.apply_along_axis(vec, 0, DTE)[0,:,:]
+        DTE_vec = np.apply_along_axis(vec, 0, DTE)
         PHI_DTE = np.vstack([DTE_vec, DTE])
 
         (x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj,

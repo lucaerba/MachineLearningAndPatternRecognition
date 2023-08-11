@@ -133,8 +133,8 @@ def logreg_kfold_wrapper(D, L):
                 print('-- Logistic Regression -- (PCA = {})'.format(m))
             for l in lam:
                     if m == 'No PCA':
-                        _, _, minDCF, l = logreg_wrapper(D, L, l)
-                        print('LogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
+                        # _, _, minDCF, l = logreg_wrapper(D, L, l)
+                        # print('LogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
                         _, _, minDCF, l = QUAD_log_reg(D, L, l)
                         print('QUADLogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
                     else:

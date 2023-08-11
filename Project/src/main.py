@@ -18,15 +18,15 @@ def main(seed=1,K=5):
     D, L = input.load(input.traininput)
 
     #plot
-    plottering.plot_simple()
-    plottering.plot_LDA(D,L)
-    plottering.plot_correlations(D)
-    plottering.plot_Scatter(D,L)
+    # plottering.plot_simple()
+    # plottering.plot_LDA(D,L)
+    # plottering.plot_correlations(D)
+    # plottering.plot_Scatter(D,L)
 
     #train
     
-    # print("logreg...")
-    # model.logreg_kfold_wrapper(D, L)
+    print("logreg...")
+    model.logreg_kfold_wrapper(D, L)
     # print("MVG...")
     # model.MVG_kfold_wrapper(D, L)
     # print("NB...")
@@ -37,8 +37,8 @@ def main(seed=1,K=5):
     # model.TNB_kfold_wrapper(D, L)
     # print("GMM...")
     # model.GMM_wrapper(D, L)
-    print("SVM...")
-    model.SVM_wrapper(D, L)
+    # print("SVM...")
+    # model.SVM_wrapper(D, L)
      
     #calibration
 
