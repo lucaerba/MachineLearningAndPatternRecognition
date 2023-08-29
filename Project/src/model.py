@@ -2,6 +2,7 @@ import scipy as sp
 import numpy as np    
 import threading
 import evaluation
+from prettytable import PrettyTable
 from Models.discriminative import * 
 from Models.gaussians import *
 from Models.gmm import *
@@ -93,7 +94,7 @@ def TMVG_kfold_wrapper(D, L):
     original_stdout = sys.stdout
     with open(tmvg_output_file, 'w') as f:
         sys.stdout = f
-    
+
         for m in range(2,11):
             DP = PCA(D,m)
             print('PCA = {}'.format(m))
@@ -154,93 +155,118 @@ def SVM_wrapper(D, L):
         PCA_dim =  ['No PCA'] + [aa for aa in range(2, 10)]
         for m in PCA_dim:
             if m == "No PCA":
-                print("NO PCA")
+                print(" ---------------------- NO PCA")
                 DP = D
             else:
-                print("PCA({})".format(m))
+                print(" ---------------------- PCA({})".format(m))
                 DP = PCA(D, m)
-                
-            print("--------Polynomial----------")
-        
-            cs = [10**-5, 2*(10**-5), 5*(10**-5)]
-            DP = np.append(DP, np.ones((1,DP.shape[1])),axis=0)
+
+            print("-------- Linear ---------")
+
+            # linear
+            cs = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]
+            for c in cs:
+                print(f' ----  c = {c}')
+                for K in [1, 10, 100, 1000]:
+                    svm = SVM(DP, L, c, K, Kernel.linear)
+                    print(" --- K = {}".format(K))
+                    for pi in [0.1, 0.5]:
+                        for C_fp in [1, 10]:
+                            svm.exec(pi=pi, C_fp=C_fp)
+
+            print("-------- Polynomial ----------")
+
             #polynomial
-            for c in cs:
-                for mul in [1, 10, 100, 1000]:
-                    c_val = c * mul
+            for c_val in cs:
+                print(f' ----  c = {c}')
+                for K in [1, 10, 100, 1000]:
+                    print('---- d = 2 ----')
                     pol_kern = Kernel(d=2)
-                    svm = SVM(DP, L, c_val, pol_kern.polynomial)
-                    print("c= "+str(c_val)+" poly("+str(2)+")")
-                    svm.exec()
+                    svm = SVM(DP, L, c_val, K, pol_kern.polynomial)
+                    print(" --- K = {}".format(K))
+                    for pi in [0.1, 0.5]:
+                        for C_fp in [1, 10]:
+                            svm.exec(pi=pi, C_fp=C_fp)
 
+                for K in [1, 10, 100, 1000]:
+                    print('---- d = 3 ----')
                     pol_kern = Kernel(d=3)
-                    svm = SVM(DP, L, c_val, pol_kern.polynomial)
-                    print("c= "+str(c_val)+" poly("+str(3)+")")
-                    svm.exec()
+                    svm = SVM(DP, L, c_val, K, pol_kern.polynomial)
+                    print(" --- K = {}".format(K))
+                    for pi in [0.1, 0.5]:
+                        for C_fp in [1, 10]:
+                            svm.exec(pi=pi, C_fp=C_fp)
 
-            print("--------RBF----------")
+            print("-------- RBF ----------")
             #rbf
-            for c in cs:
-                for mul in [1, 10, 100, 1000]:
-                    c_val = c * mul
-                    
-                    rbf_kern = Kernel(g=2)
-                    svm = SVM(DP, L, c_val, rbf_kern.rbf_kernel)
-                    print("c= "+str(c_val)+" rbf("+str(2)+")")
-                    svm.exec()
-                    
-                    rbf_kern = Kernel(g=3)
-                    svm = SVM(DP, L, c_val, rbf_kern.rbf_kernel)
-                    print("c= "+str(c_val)+" rbf("+str(3)+")")
-                    svm.exec()
-                    
-                    rbf_kern = Kernel(g=4)
-                    svm = SVM(DP, L, c_val, rbf_kern.rbf_kernel)
-                    print("c= "+str(c_val)+" rbf("+str(4)+")")
-                    svm.exec()
-                    
-                    rbf_kern = Kernel(g=5)
-                    svm = SVM(DP, L, c_val, rbf_kern.rbf_kernel)
-                    print("c= "+str(c_val)+" rbf("+str(5)+")")
-                    svm.exec()
-            
+            for c_val in cs:
+                print(f' ----  c = {c}')
+
+                for K in [1, 10, 100, 1000]:
+                    print(" --- K = {}".format(K))
+                    for g in [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]:
+                        rbf_kern = Kernel(g)
+                        svm = SVM(DP, L, c_val, K, rbf_kern.rbf_kernel)
+                        print(f'-- g = {g}')
+                        for pi in [0.1, 0.5]:
+                            for C_fp in [1, 10]:
+                                svm.exec(pi=pi, C_fp=C_fp)
         # Restore the original stdout
         sys.stdout = original_stdout
-        """ #linear
-        for c in cs:
-            for mul in [1, 10, 100, 1000]:
-                c = c * mul
-                H = matrix_H_kernel(D, L, linear)
-                SVM(D, L, H, c, linear) """
+
+gmm_table = PrettyTable()
+gmm_table.field_names = ['PCA', 'g (target)', 'g (NON target)', 'function', 'Working Point', 'minDCF', 'C_prim']
        
 def GMM_wrapper(D, L):
     original_stdout = sys.stdout
+    Cprim_selected = 1
+    Working_Points = [(0.1, 1, 1), (0.5, 1, 1), (0.1, 1, 10)]
     with open(gmm_output_file, 'w') as f:
         sys.stdout = f
 
         PCA_dim =  ['No PCA'] + [aa for aa in range(2, 10)]
         for m in PCA_dim:
             if m == "No PCA":
-                print("NO PCA")
                 DP = D
             else:
-                print("PCA({})".format(m))
                 DP = PCA(D, m)
                
             G = [1,2,4,8,16]
             functions = [GMM_EM, GMM_EM_diag, GMM_EM_tied]
 
-            for g in G:
-                print('------ g = {} ------'.format(g))
-                for f in functions:
-                    err, minDCF = Kfold_cross_validation_GMM(DP, L, K, g, f)
-                    # print("error: {}, using function: {} ".format(err,f.__name__))
-                    # print(pred[np.argmin(err)])
+            for g_target in G:
+                for g_NONtarget in G:
+                    for f in functions:
+                        _, minDCF0 = Kfold_cross_validation_GMM(DP, L, K, g_target, g_NONtarget, func=f)
 
-                    print('function = {}, minDCF: {}'.format(f.__name__,minDCF))
+                        gmm_table.add_row([m, g_target, g_NONtarget, f.__name__, (0.1,1,1), minDCF0, '-'])
 
-        # Restore the original stdout
-        sys.stdout = original_stdout
+                        _, minDCF1 = Kfold_cross_validation_GMM(DP, L, K, g_target, g_NONtarget,
+                                                                 pi=0.5, func=f)
+                        gmm_table.add_row(['-', '-', '-', '-', (0.5,1,1), minDCF1, '-'])
+
+                        _, minDCF2 = Kfold_cross_validation_GMM(DP, L, K, g_target, g_NONtarget,
+                                                                 C_fp=10, func=f)
+                        gmm_table.add_row(['-', '-', '-', '-', (0.1,1,10), minDCF2, '-'])
+
+                        C_prim = np.mean([minDCF0,minDCF1,minDCF2])
+                        gmm_table.add_row(['-', '-', '-', '-', '-', '-', C_prim])
+
+                        tot_solutions = [C_prim,Cprim_selected]
+                        ind = np.argmin(tot_solutions)
+                        if ind == 0:
+                            m_best = m
+                            g_target_best = g_target
+                            g_NONtarget_best = g_NONtarget
+                            f_best = f.__name__
+                            C_prim_best = np.min(tot_solutions)
+
+    print(f'BEST MODEL --> PCA : {m_best} -- g_target : {g_target_best} '
+          f'-- g_NONtarget : {g_NONtarget_best} -- func : {f_best} '
+          f'-- C_prim: {C_prim_best}')
+    print(gmm_table)
+    # Restore the original stdout
+    sys.stdout = original_stdout
 
 
 

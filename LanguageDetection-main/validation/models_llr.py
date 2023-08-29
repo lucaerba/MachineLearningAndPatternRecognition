@@ -11,6 +11,7 @@ sys.path.append("../")
 import numpy as np
 import scipy.optimize
 import Functions as f
+import sklearn.datasets
 
 Nc = 2
 

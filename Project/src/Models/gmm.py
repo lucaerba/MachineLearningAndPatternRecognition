@@ -155,7 +155,7 @@ def LBG_gmm(X,G,func,psi=0.01):
 
     return gmm
 
-def Kfold_cross_validation_GMM(D, L, K, G, func=GMM_EM, seed=1):
+def Kfold_cross_validation_GMM(D, L, K, G_Target, G_nonTarget, pi=0.1, C_fn=1, C_fp=1, func=GMM_EM, seed=1):
     nSamp = int(D.shape[1]/K)
     residuals = D.shape[1] - nSamp*K
     sub_arr = np.ones((K, 1)) * nSamp
@@ -174,11 +174,11 @@ def Kfold_cross_validation_GMM(D, L, K, G, func=GMM_EM, seed=1):
         LTE = L[idxTest]
 
         DTR0 = DTR[:,LTR==0]
-        gmm0 = LBG_gmm(DTR0,G,func)
+        gmm0 = LBG_gmm(DTR0,G_nonTarget,func)
         DTR1 = DTR[:,LTR==1]
-        gmm1 = LBG_gmm(DTR1,G,func)
+        gmm1 = LBG_gmm(DTR1,G_Target,func)
 
-        _, ll0 = logpdf_GMM(DTE,gmm0)
+        _, ll0 = logpdf_GMM(DTE, gmm0)
         _, ll1 = logpdf_GMM(DTE, gmm1)
 
         ll=[]
@@ -193,7 +193,7 @@ def Kfold_cross_validation_GMM(D, L, K, G, func=GMM_EM, seed=1):
         acc_i = len(check[check == True]) / len(LTE)
 
         llr = ll1-ll0
-        minDCF.append(evaluation.minDCF(llr,LTE,0.1,1,1))
+        minDCF.append(evaluation.minDCF(llr,LTE,pi,C_fn,C_fp))
 
         err.append(1-acc_i)
 

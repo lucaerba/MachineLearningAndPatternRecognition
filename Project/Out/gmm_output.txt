@@ -1,189 +1,21 @@
-NO PCA
------- g = 1 ------
-function = GMM_EM, minDCF: 0.3918613629911364
-function = GMM_EM_diag, minDCF: 0.982454969891371
-function = GMM_EM_tied, minDCF: 0.3918613629911364
------- g = 2 ------
-function = GMM_EM, minDCF: 0.37533711943471293
-function = GMM_EM_diag, minDCF: 0.9922212830981634
-function = GMM_EM_tied, minDCF: 0.3918613629911364
------- g = 4 ------
-function = GMM_EM, minDCF: 0.37843156607681594
-function = GMM_EM_diag, minDCF: 0.9852485493306677
-function = GMM_EM_tied, minDCF: 0.4381384792366072
------- g = 8 ------
-function = GMM_EM, minDCF: 0.41380334539249136
-function = GMM_EM_diag, minDCF: 0.9613541572460349
-function = GMM_EM_tied, minDCF: 0.40310657758586527
------- g = 16 ------
-function = GMM_EM, minDCF: 0.4203800317736258
-function = GMM_EM_diag, minDCF: 0.953333656464386
-function = GMM_EM_tied, minDCF: 0.37003262977894547
-PCA(2)
------- g = 1 ------
-function = GMM_EM, minDCF: 0.9913847402986924
-function = GMM_EM_diag, minDCF: 0.9866885296888679
-function = GMM_EM_tied, minDCF: 0.9913847402986924
------- g = 2 ------
-function = GMM_EM, minDCF: 0.9992831541218639
-function = GMM_EM_diag, minDCF: 0.9952429142829701
-function = GMM_EM_tied, minDCF: 0.9913847402986924
------- g = 4 ------
-function = GMM_EM, minDCF: 0.9959988237006021
-function = GMM_EM_diag, minDCF: 0.9944505499103353
-function = GMM_EM_tied, minDCF: 0.9913847402986924
------- g = 8 ------
-function = GMM_EM, minDCF: 0.9937938933926876
-function = GMM_EM_diag, minDCF: 0.9972103159280292
-function = GMM_EM_tied, minDCF: 0.9979395697803568
------- g = 16 ------
-function = GMM_EM, minDCF: 0.9961202307059891
-function = GMM_EM_diag, minDCF: 0.9951374777341945
-function = GMM_EM_tied, minDCF: 0.996493470049893
-PCA(3)
------- g = 1 ------
-function = GMM_EM, minDCF: 0.9942667355478315
-function = GMM_EM_diag, minDCF: 0.994784711480518
-function = GMM_EM_tied, minDCF: 0.9942667355478315
------- g = 2 ------
-function = GMM_EM, minDCF: 0.9973679299797439
-function = GMM_EM_diag, minDCF: 0.9966430722440585
-function = GMM_EM_tied, minDCF: 0.9942667355478315
------- g = 4 ------
-function = GMM_EM, minDCF: 0.9954490900967169
-function = GMM_EM_diag, minDCF: 0.9980252924866437
-function = GMM_EM_tied, minDCF: 0.9961775635733094
------- g = 8 ------
-function = GMM_EM, minDCF: 0.9959422500810206
-function = GMM_EM_diag, minDCF: 0.9934367310223688
-function = GMM_EM_tied, minDCF: 0.9961783439490446
------- g = 16 ------
-function = GMM_EM, minDCF: 0.9954216541556773
-function = GMM_EM_diag, minDCF: 1.0
-function = GMM_EM_tied, minDCF: 0.9973854400598295
-PCA(4)
------- g = 1 ------
-function = GMM_EM, minDCF: 0.9756605655684059
-function = GMM_EM_diag, minDCF: 0.968131642956528
-function = GMM_EM_tied, minDCF: 0.9756605655684059
------- g = 2 ------
-function = GMM_EM, minDCF: 0.9724739539747898
-function = GMM_EM_diag, minDCF: 0.9610340011782673
-function = GMM_EM_tied, minDCF: 0.9756605655684059
------- g = 4 ------
-function = GMM_EM, minDCF: 0.9955406208981501
-function = GMM_EM_diag, minDCF: 0.992172259835191
-function = GMM_EM_tied, minDCF: 0.9775944951416872
------- g = 8 ------
-function = GMM_EM, minDCF: 0.9886401681436604
-function = GMM_EM_diag, minDCF: 0.9943443706569282
-function = GMM_EM_tied, minDCF: 0.9932831108732774
------- g = 16 ------
-function = GMM_EM, minDCF: 0.9880186670575319
-function = GMM_EM_diag, minDCF: 0.9823915599981671
-function = GMM_EM_tied, minDCF: 0.9967674308514237
-PCA(5)
------- g = 1 ------
-function = GMM_EM, minDCF: 0.6784582721161552
-function = GMM_EM_diag, minDCF: 0.6943685482182417
-function = GMM_EM_tied, minDCF: 0.6784582721161552
------- g = 2 ------
-function = GMM_EM, minDCF: 0.601242213891994
-function = GMM_EM_diag, minDCF: 0.6381508614802236
-function = GMM_EM_tied, minDCF: 0.6784582721161552
------- g = 4 ------
-function = GMM_EM, minDCF: 0.6748427251415666
-function = GMM_EM_diag, minDCF: 0.7218700685914798
-function = GMM_EM_tied, minDCF: 0.7093503315375475
------- g = 8 ------
-function = GMM_EM, minDCF: 0.6946702213307931
-function = GMM_EM_diag, minDCF: 0.6956716108399161
-function = GMM_EM_tied, minDCF: 0.6967462616532692
------- g = 16 ------
-function = GMM_EM, minDCF: 0.707069054249613
-function = GMM_EM_diag, minDCF: 0.6870821996471314
-function = GMM_EM_tied, minDCF: 0.6803626095925449
-PCA(6)
------- g = 1 ------
-function = GMM_EM, minDCF: 0.3830888051696421
-function = GMM_EM_diag, minDCF: 0.3970262036901728
-function = GMM_EM_tied, minDCF: 0.3830888051696421
------- g = 2 ------
-function = GMM_EM, minDCF: 0.349018352561962
-function = GMM_EM_diag, minDCF: 0.3590625532529642
-function = GMM_EM_tied, minDCF: 0.3830888051696421
------- g = 4 ------
-function = GMM_EM, minDCF: 0.3891617601789793
-function = GMM_EM_diag, minDCF: 0.3801109847817212
-function = GMM_EM_tied, minDCF: 0.3955636934122559
------- g = 8 ------
-function = GMM_EM, minDCF: 0.3917140528448867
-function = GMM_EM_diag, minDCF: 0.3966218978135913
-function = GMM_EM_tied, minDCF: 0.3935597023834571
------- g = 16 ------
-function = GMM_EM, minDCF: 0.4162386764848943
-function = GMM_EM_diag, minDCF: 0.411139438707688
-function = GMM_EM_tied, minDCF: 0.3912481536455976
-PCA(7)
------- g = 1 ------
-function = GMM_EM, minDCF: 0.3824010181803462
-function = GMM_EM_diag, minDCF: 0.41397063262046496
-function = GMM_EM_tied, minDCF: 0.3824010181803462
------- g = 2 ------
-function = GMM_EM, minDCF: 0.3495883879249105
-function = GMM_EM_diag, minDCF: 0.3674257806559213
-function = GMM_EM_tied, minDCF: 0.3824010181803462
------- g = 4 ------
-function = GMM_EM, minDCF: 0.39929869924262634
-function = GMM_EM_diag, minDCF: 0.39956560812868835
-function = GMM_EM_tied, minDCF: 0.3950492593039172
------- g = 8 ------
-function = GMM_EM, minDCF: 0.41059554440911966
-function = GMM_EM_diag, minDCF: 0.3994792744729941
-function = GMM_EM_tied, minDCF: 0.3962025688550235
------- g = 16 ------
-function = GMM_EM, minDCF: 0.39175099402321995
-function = GMM_EM_diag, minDCF: 0.41851779654596244
-function = GMM_EM_tied, minDCF: 0.3883016340855797
-PCA(8)
------- g = 1 ------
-function = GMM_EM, minDCF: 0.40167033260789003
-function = GMM_EM_diag, minDCF: 0.4293206549006429
-function = GMM_EM_tied, minDCF: 0.40167033260789003
------- g = 2 ------
-function = GMM_EM, minDCF: 0.30100372401070224
-function = GMM_EM_diag, minDCF: 0.37050111815099085
-function = GMM_EM_tied, minDCF: 0.40167033260789003
------- g = 4 ------
-function = GMM_EM, minDCF: 0.3873403890143503
-function = GMM_EM_diag, minDCF: 0.37786788216578854
-function = GMM_EM_tied, minDCF: 0.4155606439039081
------- g = 8 ------
-function = GMM_EM, minDCF: 0.4054578443855229
-function = GMM_EM_diag, minDCF: 0.39089031079499326
-function = GMM_EM_tied, minDCF: 0.3898171829959784
------- g = 16 ------
-function = GMM_EM, minDCF: 0.3731071145748035
-function = GMM_EM_diag, minDCF: 0.4218427477440095
-function = GMM_EM_tied, minDCF: 0.3888195477739765
-PCA(9)
------- g = 1 ------
-function = GMM_EM, minDCF: 0.39115474708763376
-function = GMM_EM_diag, minDCF: 0.4071776211423853
-function = GMM_EM_tied, minDCF: 0.39115474708763376
------- g = 2 ------
-function = GMM_EM, minDCF: 0.2910383839824574
-function = GMM_EM_diag, minDCF: 0.3606250706326883
-function = GMM_EM_tied, minDCF: 0.39115474708763376
------- g = 4 ------
-function = GMM_EM, minDCF: 0.3843190320932466
-function = GMM_EM_diag, minDCF: 0.40187169455430904
-function = GMM_EM_tied, minDCF: 0.4082814077631821
------- g = 8 ------
-function = GMM_EM, minDCF: 0.3873214551623155
-function = GMM_EM_diag, minDCF: 0.3987872311412512
-function = GMM_EM_tied, minDCF: 0.37787871397273387
------- g = 16 ------
-function = GMM_EM, minDCF: 0.3923443264757779
-function = GMM_EM_diag, minDCF: 0.3995556594933189
-function = GMM_EM_tied, minDCF: 0.3802356415304373
++--------+------------+----------------+----------+---------------+---------------------+---------------------+
+|  PCA   | g (target) | g (NON target) | function | Working Point |        minDCF       |        C_prim       |
++--------+------------+----------------+----------+---------------+---------------------+---------------------+
+| No PCA |     1      |       1        |  GMM_EM  |  (0.1, 1, 1)  |  0.3918613629911364 |          -          |
+|   -    |     -      |       -        |    -     |  (0.5, 1, 1)  | 0.08421531245818062 |          -          |
+|   -    |     -      |       -        |    -     |  (0.1, 1, 10) |  0.8183278209518839 |          -          |
+|   -    |     -      |       -        |    -     |       -       |          -          | 0.43146816546706696 |
++--------+------------+----------------+----------+---------------+---------------------+---------------------+
+BEST MODEL --> PCA : No PCA -- g_target : 1 -- g_NONtarget : 1 -- func : GMM_EM -- C_prim: 0.43146816546706696
++--------+------------+----------------+-------------+---------------+---------------------+---------------------+
+|  PCA   | g (target) | g (NON target) |   function  | Working Point |        minDCF       |        C_prim       |
++--------+------------+----------------+-------------+---------------+---------------------+---------------------+
+| No PCA |     1      |       1        |    GMM_EM   |  (0.1, 1, 1)  |  0.3918613629911364 |          -          |
+|   -    |     -      |       -        |      -      |  (0.5, 1, 1)  | 0.08421531245818062 |          -          |
+|   -    |     -      |       -        |      -      |  (0.1, 1, 10) |  0.8183278209518839 |          -          |
+|   -    |     -      |       -        |      -      |       -       |          -          | 0.43146816546706696 |
+| No PCA |     1      |       1        | GMM_EM_diag |  (0.1, 1, 1)  |  0.982454969891371  |          -          |
+|   -    |     -      |       -        |      -      |  (0.5, 1, 1)  |  0.9352595181080936 |          -          |
+|   -    |     -      |       -        |      -      |  (0.1, 1, 10) |  0.982454969891371  |          -          |
+|   -    |     -      |       -        |      -      |       -       |          -          |  0.9667231526302785 |
++--------+------------+----------------+-------------+---------------+---------------------+---------------------+

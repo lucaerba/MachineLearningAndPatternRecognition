@@ -16,7 +16,7 @@ import evaluation as ev
 from prettytable import PrettyTable
 import matplotlib.pyplot as plt
 import datetime
-
+import sklearn.datasets
 
 D, L = f.loadData("../Train.txt")
 
