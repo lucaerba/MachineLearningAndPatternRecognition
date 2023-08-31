@@ -1,3 +1,0 @@
--- Logistic Regression -- (no PCA)
-QUADLogReg -- Lambda = 1e-06 -- minDCF: 0.31791469801696726
-QUADLogReg -- Lambda = 1e-05 -- minDCF: 0.3110462619832202

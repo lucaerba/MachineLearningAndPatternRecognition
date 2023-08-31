@@ -82,7 +82,7 @@ class SVM:
         np.random.seed(seed)
         idx = np.random.permutation(self.D.shape[1])
 
-        err = []
+        # err = []
         minDCF = []
         for i in range(K_fold):
             idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
@@ -103,7 +103,9 @@ class SVM:
             # check = predicted_labels == LTE
             # acc_i = len(check[check == True]) / len(LTE)
             # err.append(1 - acc_i)
+
+        return np.mean(minDCF)
         
-        print("minDCF: {} -- WP = ({}, {}, {})".format(np.mean(minDCF) , pi, C_fn, C_fp))
+        # print("minDCF: {} -- WP = ({}, {}, {})".format(np.mean(minDCF) , pi, C_fn, C_fp))
         # print('error = {}'.format(np.mean(err)))
 

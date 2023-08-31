@@ -18,6 +18,7 @@ def main(seed=1,K=5):
     D, L = input.load(input.traininput)
 
     # D, L = input.load_iris_binary()
+
     #plot
     # plottering.plot_simple()
     # plottering.plot_LDA(D,L)
@@ -36,8 +37,8 @@ def main(seed=1,K=5):
     # model.TMVG_kfold_wrapper(D, L)
     # print("TNB...")
     # model.TNB_kfold_wrapper(D, L)
-    print("GMM...")
-    model.GMM_wrapper(D, L)
+    # print("GMM...")
+    # model.GMM_wrapper(D, L)
     # print("SVM...")
     # model.SVM_wrapper(D, L)
      

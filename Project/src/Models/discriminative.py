@@ -36,7 +36,7 @@ def logreg_obj(v, DTR, LTR, l):
 
     return J(w, b, DTR, LTR, l)
 #-----------------------------------------#
-def logreg_wrapper(D,L,l,seed=0):
+def logreg_wrapper(D,L,l,seed=0, pi=0.1, C_fn=1, C_fp=1):
     nSamp = int(D.shape[1] / K)
     residuals = D.shape[1] - nSamp * K
     sub_arr = np.ones((K, 1)) * nSamp
@@ -71,7 +71,7 @@ def logreg_wrapper(D,L,l,seed=0):
 
         err.append(1 - len(check[check == True]) / len(LTE))
 
-        minDCF.append(evaluation.minDCF(S, LTE, 0.1, 1, 1))
+        minDCF.append(evaluation.minDCF(S, LTE, pi, C_fn, C_fp))
     # print(l)
     return np.mean(err), S_sc[np.argmin(err)], np.mean(minDCF), l
 
@@ -79,7 +79,7 @@ def vec(x):
     x = vcol(x)
     return np.dot(x,x.T).flatten()
 
-def QUAD_log_reg(D,L,l,seed=0):
+def QUAD_log_reg(D,L,l,seed=0, pi=0.1, C_fn=1, C_fp=1):
     nSamp = int(D.shape[1] / K)
     residuals = D.shape[1] - nSamp * K
     sub_arr = np.ones((K, 1)) * nSamp
@@ -121,6 +121,6 @@ def QUAD_log_reg(D,L,l,seed=0):
 
         err.append(1 - len(check[check == True]) / len(LTE))
 
-        minDCF.append(evaluation.minDCF(S, LTE, 0.1, 1, 1))
+        minDCF.append(evaluation.minDCF(S, LTE, pi, C_fn, C_fp))
     # print(l)
     return np.mean(err), S_sc[np.argmin(err)], np.mean(minDCF), l

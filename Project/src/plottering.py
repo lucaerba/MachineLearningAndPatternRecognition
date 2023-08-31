@@ -4,6 +4,8 @@ import seaborn as sns
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from prettytable import PrettyTable
+import pandas as pd
 from model import PCA, LDA
 
 file_path = input.traininput
@@ -137,8 +139,7 @@ def plot_PCA(D,L,m,s=16):
                 plt.savefig("PCA_j={}_i={}.png".format(j,i))
                 # plt.show()
 
-def plot_LDA(D,L):
-
+def plot_LDA(D, L):
     D_class1 = D[:, L == 1]
     D_class0 = D[:, L == 0]
 
@@ -152,20 +153,91 @@ def plot_LDA(D,L):
     plt.show()
     plt.close()
 
+gmm_file = '../FINALoutputs/gmm_output.txt'
+mvg_file = '../FINALoutputs/mvg_output.txt'
+nb_file = '../FINALoutputs/nb_output.txt'
+tmvg_file = '../FINALoutputs/tmvg_output.txt'
+tnb_file = '../FINALoutputs/tnb_output.txt'
+
+fields_gmm = ['PCA','g (target)','g (NON target)','function', 'Working Point','minDCF','C_prim']
+
+def PrettyTab_to_data(tab, fields):
+    with open(tab, 'r') as file:
+        table_data = file.read()
+
+    table = PrettyTable()
+    table.border = False
+    table.header = False
+    table.align = 'l'
+    table.field_names = fields
+    for line in table_data.splitlines():
+        if '|' in line:
+            data = [cell.strip() for cell in line.split('|') if cell.strip()]
+            table.add_row(data)
+
+    with open('../FINALoutputs/table_data.csv', 'w', newline='') as csvfile:
+        csvfile.write(table.get_csv_string())
+
+    with open('../FINALoutputs/table_data.csv', 'r') as csvfile:
+        array = pd.read_csv(csvfile)
+        array = array.values.tolist()
+        array = np.array(array)
+        C_prim_list = []
+        for el in array[:,array.shape[1]-1]:
+            if el != '-':
+                C_prim_list.append(float(el))
+    return C_prim_list
+
+def C_prim_plot_gmm(C_prim_list, ind_PCA=0):
+
+    C_prim_tot = len(C_prim_list)
+
+    tot_PCA = ['No PCA'] + [a for a in range(2,10)]
+    n = 5 #first n K_target values
+    C_prim_list_forPCA = np.reshape(C_prim_list, (9,int(C_prim_tot/9))) # now each row represents a different PCA
+    C_prim_list_fullMVG = C_prim_list_forPCA[:,0::3] # C_prim values are stripped
+    C_plot_data = np.reshape(C_prim_list_fullMVG[ind_PCA][:int(5*n)], (n,5)) # only the first n K_target are selected
+
+    width = 0.15  # the width of the bars
+    multiplier = 0
+    K = [1,2,4,8,16]
+    fig, ax = plt.subplots(layout='constrained')
+    colors = ['navy', 'mediumblue', 'blue', 'mediumslateblue', 'blueviolet']
+
+    for i in range(len(K)):
+        offset = width * multiplier
+        ax.bar(np.arange(n) + offset, C_plot_data[:,i], width, label=f'NON target K: {2**i}', color=colors[i])
+        multiplier += 1
+
+    ax.set_ylabel('C_prim')
+    ax.set_xlabel('Target K')
+    ax.set_title(f'PCA value :{tot_PCA[ind_PCA]}')
+    ax.set_xticks(np.arange(n) + width*2, K[:n])
+    ax.legend(loc='upper left', ncols=2)
+    ax.set_ylim(0,1)
+    plt.show()
+
+
+
+
 
 if __name__ == '__main__':
-    D, L = input.load(input.traininput)
+    # D, L = input.load(input.traininput)
 
     # m = 4
     # DP = PCA(D,m)
     # plot_PCA(DP,L,m)
 
-    DP = LDA(D,L,m=1)
-    plot_LDA(DP,L)
+    # DP = LDA(D,L,m=1)
+    # plot_LDA(DP,L)
 
     # plot_simple()
     # plot_correlations(D)
     # plot_correlations(D[:,L == 1], 'Reds')
     # plot_correlations(D[:,L == 0], 'Blues')
+
+    C = PrettyTab_to_data(gmm_file, fields_gmm)
+    for i in range(9):
+        C_prim_plot_gmm(C, i)
 
     

@@ -127,7 +127,7 @@ def predicted_labels_and_accuracy(S, LTE):
     acc = len(check[check == True]) / len(LTE)
     return predicted_labels, acc
 
-def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
+def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG, pi=0.1, C_fn=1, C_fp=1):
     nSamp = int(D.shape[1]/K)
     residuals = D.shape[1] - nSamp*K
     sub_arr = np.ones((K, 1)) * nSamp
@@ -154,7 +154,7 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG):
 
         scores = - Sjoint[0,:] + Sjoint[1,:]
 
-        minDCF.append(evaluation.minDCF(scores, LTE, 0.1, 1, 1))
+        minDCF.append(evaluation.minDCF(scores, LTE, pi, C_fn, C_fp))
 
     return np.min(err),pred[np.argmin(err)],np.mean(minDCF)
 

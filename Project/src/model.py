@@ -8,6 +8,8 @@ from Models.gaussians import *
 from Models.gmm import *
 from Models.svm import *
 import sys
+import time
+import os
 
 # Define the paths for the output files
 mvg_output_file = '../Out/mvg_output.txt'
@@ -57,162 +59,421 @@ def LDA(D,L,m,N_classes = 2):
     return DP
 
 K = 5
+
+MVG_table = PrettyTable()
+MVG_table.field_names = ['PCA', 'Type', 'Working Point', 'minDCF', 'C_prim']
+
 def MVG_kfold_wrapper(D, L):
-    # print("MVG err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_MVG)))
-    print("----------MVG-------------")
     original_stdout = sys.stdout
+    PCA_dim = ['No PCA'] + [aa for aa in range(2, D.shape[0])]
+    Cprim_selected = 1
     with open(mvg_output_file, 'w') as f:
         sys.stdout = f
-        
-        for m in range(2,11):
-            DP = PCA(D,m)
-            print('PCA = {}'.format(m))
-            print('minDCF: {}'.format(Kfold_cross_validation(DP, L, K, func=score_matrix_MVG)[2]))
-        
+
+        for m in PCA_dim:
+            t = time.time()
+            sys.stdout = original_stdout
+            print(f'starting PCA: {m}')
+            sys.stdout = f
+            if m == 'No PCA':
+                DP = D
+            else:
+                DP = PCA(D, m)
+            minDCF0 = Kfold_cross_validation(DP, L, K, func=score_matrix_MVG)[2]
+            MVG_table.add_row([m, 'MVG', (0.1, 1, 1), minDCF0, '-'])
+            minDCF1 = Kfold_cross_validation(DP, L, K, func=score_matrix_MVG, pi=0.5)[2]
+            MVG_table.add_row([m, 'MVG', (0.5, 1, 1), minDCF1, '-'])
+            minDCF2 = Kfold_cross_validation(DP, L, K, func=score_matrix_MVG, C_fp=10)[2]
+            MVG_table.add_row([m, 'MVG', (0.1, 1, 10), minDCF2, '-'])
+
+            C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+            MVG_table.add_row(['-', '-', '-', '-', C_prim])
+
+            if C_prim < Cprim_selected:
+                m_best = m
+                C_prim_best = C_prim
+                Cprim_selected = C_prim_best
+
+            elapsed_time = time.time() - t
+            sys.stdout = original_stdout
+            print(f'finished PCA: {m}, elapsed time : {elapsed_time} s')
+            sys.stdout = f
+
+        print(f'MVG BEST --> PCA : {m_best} '
+              f'-- C_prim: {C_prim_best}')
+        print(MVG_table)
         # Restore the original stdout
         sys.stdout = original_stdout
 
+NB_table = PrettyTable()
+NB_table.field_names = ['PCA', 'Type', 'Working Point', 'minDCF', 'C_prim']
 def NB_kfold_wrapper(D, L):
-    # print("NB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_NaiveBayes)))
-    print("----------NB-------------")
     original_stdout = sys.stdout
+    PCA_dim = ['No PCA'] + [aa for aa in range(2, D.shape[0])]
+    Cprim_selected = 1
     with open(nb_output_file, 'w') as f:
         sys.stdout = f
-            
-        for m in range(2,11):
-            DP = PCA(D,m)
-            print('PCA = {}'.format(m))
-            print('minDCF: {}'.format(Kfold_cross_validation(DP, L, K, func=score_matrix_NaiveBayes)[2]))
-            
+
+        for m in PCA_dim:
+            t = time.time()
+            sys.stdout = original_stdout
+            print(f'starting PCA: {m}')
+            sys.stdout = f
+            if m == 'No PCA':
+                DP = D
+            else:
+                DP = PCA(D, m)
+            minDCF0 = Kfold_cross_validation(DP, L, K, func=score_matrix_NaiveBayes)[2]
+            NB_table.add_row([m, 'NB', (0.1, 1, 1), minDCF0, '-'])
+            minDCF1 = Kfold_cross_validation(DP, L, K, func=score_matrix_NaiveBayes, pi=0.5)[2]
+            NB_table.add_row([m, 'NB', (0.5, 1, 1), minDCF1, '-'])
+            minDCF2 = Kfold_cross_validation(DP, L, K, func=score_matrix_NaiveBayes, C_fp=10)[2]
+            NB_table.add_row([m, 'NB', (0.1, 1, 10), minDCF2, '-'])
+
+            C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+            NB_table.add_row(['-', '-', '-', '-', C_prim])
+
+            if C_prim < Cprim_selected:
+                m_best = m
+                C_prim_best = C_prim
+                Cprim_selected = C_prim_best
+
+            elapsed_time = time.time() - t
+            sys.stdout = original_stdout
+            print(f'finished PCA: {m}, elapsed time : {elapsed_time} s')
+            sys.stdout = f
+
+        print(f'NB BEST --> PCA : {m_best} '
+              f'-- C_prim: {C_prim_best}')
+        print(NB_table)
         # Restore the original stdout
         sys.stdout = original_stdout
 
+TMVG_table = PrettyTable()
+TMVG_table.field_names = ['PCA', 'Type', 'Working Point', 'minDCF', 'C_prim']
 def TMVG_kfold_wrapper(D, L):
-    # print("TMVG err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedMVG)))
-    print("----------TMVG-------------")
-    
     original_stdout = sys.stdout
+    PCA_dim = ['No PCA'] + [aa for aa in range(2, D.shape[0])]
+    Cprim_selected = 1
     with open(tmvg_output_file, 'w') as f:
         sys.stdout = f
 
-        for m in range(2,11):
-            DP = PCA(D,m)
-            print('PCA = {}'.format(m))
-            print('minDCF: {}'.format(Kfold_cross_validation(DP, L, K, func=score_matrix_TiedMVG)[2]))
-        
+        for m in PCA_dim:
+            t = time.time()
+            sys.stdout = original_stdout
+            print(f'starting PCA: {m}')
+            sys.stdout = f
+            if m == 'No PCA':
+                DP = D
+            else:
+                DP = PCA(D, m)
+            minDCF0 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedMVG)[2]
+            TMVG_table.add_row([m, 'TMVG', (0.1, 1, 1), minDCF0, '-'])
+            minDCF1 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedMVG, pi=0.5)[2]
+            TMVG_table.add_row([m, 'TMVG', (0.5, 1, 1), minDCF1, '-'])
+            minDCF2 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedMVG, C_fp=10)[2]
+            TMVG_table.add_row([m, 'TMVG', (0.1, 1, 10), minDCF2, '-'])
+
+            C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+            TMVG_table.add_row(['-', '-', '-', '-', C_prim])
+
+            if C_prim < Cprim_selected:
+                m_best = m
+                C_prim_best = C_prim
+                Cprim_selected = C_prim_best
+
+            elapsed_time = time.time() - t
+            sys.stdout = original_stdout
+            print(f'finished PCA: {m}, elapsed time : {elapsed_time} s')
+            sys.stdout = f
+
+        print(f'TMVG BEST --> PCA : {m_best} '
+              f'-- C_prim: {C_prim_best}')
+        print(TMVG_table)
         # Restore the original stdout
         sys.stdout = original_stdout
+
+TNB_table = PrettyTable()
+TNB_table.field_names = ['PCA', 'Type', 'Working Point', 'minDCF', 'C_prim']
 
 def TNB_kfold_wrapper(D, L):
-    # print("TNB err: "+str(Kfold_cross_validation(D, L, K, func=score_matrix_TiedNaiveBayes)))
-    print("----------TNB-------------")
-    
     original_stdout = sys.stdout
+    PCA_dim = ['No PCA'] + [aa for aa in range(2, D.shape[0])]
+    Cprim_selected = 1
     with open(tnb_output_file, 'w') as f:
         sys.stdout = f
-        
-        for m in range(2,11):
-            DP = PCA(D,m)
-            print('PCA = {}'.format(m))
-            print('minDCF: {}'.format(Kfold_cross_validation(DP, L, K, func=score_matrix_TiedNaiveBayes)[2]))
 
-    
+        for m in PCA_dim:
+            t = time.time()
+            sys.stdout = original_stdout
+            print(f'starting PCA: {m}')
+            sys.stdout = f
+            if m == 'No PCA':
+                DP = D
+            else:
+                DP = PCA(D, m)
+            minDCF0 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedNaiveBayes)[2]
+            TNB_table.add_row([m, 'TNB', (0.1, 1, 1), minDCF0, '-'])
+            minDCF1 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedNaiveBayes, pi=0.5)[2]
+            TNB_table.add_row([m, 'TNB', (0.5, 1, 1), minDCF1, '-'])
+            minDCF2 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedNaiveBayes, C_fp=10)[2]
+            TNB_table.add_row([m, 'TNB', (0.1, 1, 10), minDCF2, '-'])
+
+            C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+            TNB_table.add_row(['-', '-', '-', '-', C_prim])
+
+            if C_prim < Cprim_selected:
+                m_best = m
+                C_prim_best = C_prim
+                Cprim_selected = C_prim_best
+
+            elapsed_time = time.time() - t
+            sys.stdout = original_stdout
+            print(f'finished PCA: {m}, elapsed time : {elapsed_time} s')
+            sys.stdout = f
+
+        print(f'TNB BEST --> PCA : {m_best} '
+              f'-- C_prim: {C_prim_best}')
+        print(TNB_table)
         # Restore the original stdout
         sys.stdout = original_stdout
+
+##############################################################################################################################################################################
+####################################### LogReg ##################################################################################################################################
+##############################################################################################################################################################################
+
+logreg_table = PrettyTable()
+logreg_table.field_names = ['PCA', 'Type', 'lambda', 'Working Point', 'minDCF', 'C_prim']
+
 
 def logreg_kfold_wrapper(D, L):
     original_stdout = sys.stdout
+    Cprim_selected_lin = 1
+    Cprim_selected_quad = 1
     with open(logreg_output_file, 'w') as f:
         sys.stdout = f
     
-        PCA_dim =  ['No PCA'] + [aa for aa in range(2, 10)]
+        PCA_dim =  ['No PCA'] + [aa for aa in range(2, D.shape[0])]
         lam = [10 ** -6, 10 ** -5, 10 ** -4, 10 ** -3, 10 ** -2, 10 ** -1, 1, 10, 100, 1000, 10000]
         for m in PCA_dim:
+            t = time.time()
+            sys.stdout = original_stdout
+            print(f'starting PCA: {m}')
+            sys.stdout = f
             if m == 'No PCA':
-                print('-- Logistic Regression -- (no PCA)')
+                DP = D
             else:
-                print('-- Logistic Regression -- (PCA = {})'.format(m))
+                DP = PCA(D, m)
             for l in lam:
-                    if m == 'No PCA':
-                        # _, _, minDCF, l = logreg_wrapper(D, L, l)
-                        # print('LogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
-                        _, _, minDCF, l = QUAD_log_reg(D, L, l)
-                        print('QUADLogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
-                    else:
-                        DP = PCA(D, m)
-                        _, _, minDCF, l = logreg_wrapper(DP, L, l)
-                        print('LogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
-                        _, _, minDCF, l = QUAD_log_reg(DP, L, l)
-                        print('QUADLogReg -- Lambda = {} -- minDCF: {}'.format(l, minDCF))
+                    _, _, minDCF0, l = logreg_wrapper(DP, L, l)
+                    logreg_table.add_row([m, 'Linear', l, (0.1, 1, 1), minDCF0, '-'])
+
+                    _, _, minDCF1, l = logreg_wrapper(DP, L, l, pi=0.5)
+                    logreg_table.add_row([m, 'Linear', l, (0.5, 1, 1), minDCF1, '-'])
+
+                    _, _, minDCF2, l = logreg_wrapper(DP, L, l, C_fp=10)
+                    logreg_table.add_row([m, 'Linear', l, (0.1, 1, 10), minDCF2, '-'])
+
+                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    logreg_table.add_row(['-', '-', '-', '-', '-', C_prim])
+
+                    if C_prim < Cprim_selected_lin:
+                        m_best_lin = m
+                        l_best_lin = l
+                        C_prim_best_lin = C_prim
+                        Cprim_selected_lin = C_prim_best_lin
+
+                    _, _, minDCF0, l = QUAD_log_reg(DP, L, l)
+                    logreg_table.add_row([m, 'Quadratic', l, (0.1, 1, 1), minDCF0, '-'])
+
+                    _, _, minDCF1, l = QUAD_log_reg(DP, L, l, pi=0.5)
+                    logreg_table.add_row([m, 'Quadratic', l, (0.5, 1, 1), minDCF1, '-'])
+
+                    _, _, minDCF2, l = QUAD_log_reg(DP, L, l, C_fp=10)
+                    logreg_table.add_row([m, 'Quadratic', l, (0.1, 1, 10), minDCF2, '-'])
+
+                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    logreg_table.add_row(['-', '-', '-', '-', '-', C_prim])
+
+                    if C_prim < Cprim_selected_quad:
+                        m_best_quad = m
+                        l_best_quad = l
+                        C_prim_best_quad = C_prim
+                        Cprim_selected_quad = C_prim_best_quad
+
+            elapsed_time = time.time() - t
+            sys.stdout = original_stdout
+            print(f'finished PCA: {m}, elapsed time : {elapsed_time} s')
+            sys.stdout = f
+
+        print(f'Lin BEST --> PCA : {m_best_lin} -- l_best : {l_best_lin} '
+              f'-- C_prim: {C_prim_best_lin}')
+        print(f'Quad BEST --> PCA : {m_best_quad} -- l_best : {l_best_quad} '
+              f'-- C_prim: {C_prim_best_quad}')
+        print(logreg_table)
+
         # Restore the original stdout
         sys.stdout = original_stdout
 
+
+
+##############################################################################################################################################################################
+####################################### SVM ##################################################################################################################################
+##############################################################################################################################################################################
+
+svm_table = PrettyTable()
+svm_table.field_names = ['PCA', 'Kernel', 'c', 'degree', 'gamma', 'K', 'Working Point', 'minDCF', 'C_prim']
+
 def SVM_wrapper(D, L):
     original_stdout = sys.stdout
+    Cprim_selected_lin = 1
+    Cprim_selected_poly2 = 1
+    Cprim_selected_poly3 = 1
+    Cprim_selected_rbf = 1
     with open(svm_output_file, 'w') as f:
         sys.stdout = f
         
-        PCA_dim =  ['No PCA'] + [aa for aa in range(2, 10)]
+        PCA_dim =  ['No PCA'] + [aa for aa in range(2, D.shape[0])]
         for m in PCA_dim:
+            t = time.time()
+            sys.stdout = original_stdout
+            print(f'starting PCA: {m}')
+            sys.stdout = f
             if m == "No PCA":
-                print(" ---------------------- NO PCA")
                 DP = D
             else:
-                print(" ---------------------- PCA({})".format(m))
                 DP = PCA(D, m)
-
-            print("-------- Linear ---------")
 
             # linear
             cs = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]
             for c in cs:
-                print(f' ----  c = {c}')
                 for K in [1, 10, 100, 1000]:
                     svm = SVM(DP, L, c, K, Kernel.linear)
-                    print(" --- K = {}".format(K))
-                    for pi in [0.1, 0.5]:
-                        for C_fp in [1, 10]:
-                            svm.exec(pi=pi, C_fp=C_fp)
 
-            print("-------- Polynomial ----------")
+                    minDCF0 = svm.exec()
+                    svm_table.add_row([m, 'Linear', c, '-', '-', K, (0.1, 1, 1), minDCF0, '-'])
+
+                    minDCF1 = svm.exec(pi=0.5)
+                    svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.5, 1, 1), minDCF1, '-'])
+
+                    minDCF2 = svm.exec(C_fp=10)
+                    svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.1,1,10), minDCF0, '-'])
+
+                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    svm_table.add_row(['-', '-', '-', '-', '-', '-', '-', '-', C_prim])
+
+                    if C_prim < Cprim_selected_lin:
+                        m_best_lin = m
+                        c_best_lin = c
+                        K_best_lin = K
+                        C_prim_best_lin = C_prim
+                        Cprim_selected_lin = C_prim_best_lin
 
             #polynomial
+
             for c_val in cs:
-                print(f' ----  c = {c}')
                 for K in [1, 10, 100, 1000]:
-                    print('---- d = 2 ----')
                     pol_kern = Kernel(d=2)
                     svm = SVM(DP, L, c_val, K, pol_kern.polynomial)
-                    print(" --- K = {}".format(K))
-                    for pi in [0.1, 0.5]:
-                        for C_fp in [1, 10]:
-                            svm.exec(pi=pi, C_fp=C_fp)
+
+                    minDCF0 = svm.exec()
+                    svm_table.add_row([m, 'Poly', c_val, 2, '-', K, (0.1, 1, 1), minDCF0, '-'])
+
+                    minDCF1 = svm.exec(pi=0.5)
+                    svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.5, 1, 1), minDCF1, '-'])
+
+                    minDCF2 = svm.exec(C_fp=10)
+                    svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.1,1,10), minDCF0, '-'])
+
+                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    svm_table.add_row(['-', '-', '-', '-', '-', '-', '-', '-', C_prim])
+
+                    if C_prim < Cprim_selected_poly2:
+                        m_best_poly2 = m
+                        c_best_poly2 = c_val
+                        d_best_poly2 = 2
+                        K_best_poly2 = K
+                        C_prim_best_poly2 = C_prim
+                        Cprim_selected_poly2 = C_prim_best_poly2
 
                 for K in [1, 10, 100, 1000]:
-                    print('---- d = 3 ----')
                     pol_kern = Kernel(d=3)
                     svm = SVM(DP, L, c_val, K, pol_kern.polynomial)
-                    print(" --- K = {}".format(K))
-                    for pi in [0.1, 0.5]:
-                        for C_fp in [1, 10]:
-                            svm.exec(pi=pi, C_fp=C_fp)
 
-            print("-------- RBF ----------")
+                    minDCF0 = svm.exec()
+                    svm_table.add_row([m, 'Poly', c_val, 3, '-', K, (0.1, 1, 1), minDCF0, '-'])
+
+                    minDCF1 = svm.exec(pi=0.5)
+                    svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.5, 1, 1), minDCF1, '-'])
+
+                    minDCF2 = svm.exec(C_fp=10)
+                    svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.1,1,10), minDCF0, '-'])
+
+                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    svm_table.add_row(['-', '-', '-', '-', '-', '-', '-', '-', C_prim])
+
+                    if C_prim < Cprim_selected_poly3:
+                        m_best_poly3 = m
+                        c_best_poly3 = c_val
+                        d_best_poly3 = 3
+                        K_best_poly3 = K
+                        C_prim_best_poly3 = C_prim
+                        Cprim_selected_poly3 = C_prim_best_poly3
+
             #rbf
             for c_val in cs:
-                print(f' ----  c = {c}')
-
                 for K in [1, 10, 100, 1000]:
-                    print(" --- K = {}".format(K))
                     for g in [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]:
                         rbf_kern = Kernel(g)
                         svm = SVM(DP, L, c_val, K, rbf_kern.rbf_kernel)
-                        print(f'-- g = {g}')
-                        for pi in [0.1, 0.5]:
-                            for C_fp in [1, 10]:
-                                svm.exec(pi=pi, C_fp=C_fp)
+
+                        minDCF0 = svm.exec()
+                        svm_table.add_row([m, 'RBF', c_val, '-', g, K, (0.1, 1, 1), minDCF0, '-'])
+
+                        minDCF1 = svm.exec(pi=0.5)
+                        svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.5, 1, 1), minDCF1, '-'])
+
+                        minDCF2 = svm.exec(C_fp=10)
+                        svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.1, 1, 10), minDCF0, '-'])
+
+                        C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                        svm_table.add_row(['-', '-', '-', '-', '-', '-', '-', '-', C_prim])
+
+                        if C_prim < Cprim_selected_rbf:
+                            m_best_RBF = m
+                            c_best_RBF = c_val
+                            g_best_RBF = g
+                            K_best_RBF = K
+                            C_prim_best_RBF = C_prim
+                            Cprim_selected_rbf = C_prim_best_RBF
+
+            elapsed_time = time.time() - t
+            sys.stdout = original_stdout
+            print(f'finished PCA: {m}, elapsed time : {elapsed_time} s')
+            sys.stdout = f
+
+        print(f'RBF BEST --> PCA : {m_best_RBF} -- c_best : {c_best_RBF} '
+              f'-- gamma_best : {g_best_RBF} -- K_best : {K_best_RBF} '
+              f'-- C_prim: {C_prim_best_RBF}')
+        print(f'Poly (dim3) BEST --> PCA : {m_best_poly3} -- c_best : {c_best_poly3} '
+              f'-- d_best : {d_best_poly3} -- K_best : {K_best_poly3} '
+              f'-- C_prim: {C_prim_best_poly3}')
+        print(f'Poly (dim2) BEST --> PCA : {m_best_poly2} -- c_best : {c_best_poly2} '
+              f'-- d_best : {d_best_poly2} -- K_best : {K_best_poly2} '
+              f'-- C_prim: {C_prim_best_poly2}')
+        print(f'Lin BEST --> PCA : {m_best_lin} -- c_best : {c_best_lin} '
+              f'-- K_best : {K_best_lin} '
+              f'-- C_prim: {C_prim_best_lin}')
+        print(svm_table)
+
         # Restore the original stdout
         sys.stdout = original_stdout
+
+
+##############################################################################################################################################################################
+####################################### GMM ##################################################################################################################################
+##############################################################################################################################################################################
+
 
 gmm_table = PrettyTable()
 gmm_table.field_names = ['PCA', 'g (target)', 'g (NON target)', 'function', 'Working Point', 'minDCF', 'C_prim']
@@ -220,11 +481,11 @@ gmm_table.field_names = ['PCA', 'g (target)', 'g (NON target)', 'function', 'Wor
 def GMM_wrapper(D, L):
     original_stdout = sys.stdout
     Cprim_selected = 1
-    Working_Points = [(0.1, 1, 1), (0.5, 1, 1), (0.1, 1, 10)]
+    # Working_Points = [(0.1, 1, 1), (0.5, 1, 1), (0.1, 1, 10)]
     with open(gmm_output_file, 'w') as f:
         sys.stdout = f
 
-        PCA_dim =  ['No PCA'] + [aa for aa in range(2, 10)]
+        PCA_dim =  ['No PCA'] + [aa for aa in range(2, D.shape[0])]
         for m in PCA_dim:
             if m == "No PCA":
                 DP = D
@@ -245,28 +506,23 @@ def GMM_wrapper(D, L):
                                                                  pi=0.5, func=f)
                         gmm_table.add_row(['-', '-', '-', '-', (0.5,1,1), minDCF1, '-'])
 
-                        _, minDCF2 = Kfold_cross_validation_GMM(DP, L, K, g_target, g_NONtarget,
-                                                                 C_fp=10, func=f)
-                        gmm_table.add_row(['-', '-', '-', '-', (0.1,1,10), minDCF2, '-'])
-
-                        C_prim = np.mean([minDCF0,minDCF1,minDCF2])
+                        C_prim = np.mean([minDCF0,minDCF1])
                         gmm_table.add_row(['-', '-', '-', '-', '-', '-', C_prim])
 
-                        tot_solutions = [C_prim,Cprim_selected]
-                        ind = np.argmin(tot_solutions)
-                        if ind == 0:
+                        if C_prim < Cprim_selected:
                             m_best = m
                             g_target_best = g_target
                             g_NONtarget_best = g_NONtarget
                             f_best = f.__name__
-                            C_prim_best = np.min(tot_solutions)
+                            C_prim_best = C_prim
+                            Cprim_selected = C_prim_best
 
-    print(f'BEST MODEL --> PCA : {m_best} -- g_target : {g_target_best} '
-          f'-- g_NONtarget : {g_NONtarget_best} -- func : {f_best} '
-          f'-- C_prim: {C_prim_best}')
-    print(gmm_table)
-    # Restore the original stdout
-    sys.stdout = original_stdout
+        print(f'BEST MODEL --> PCA : {m_best} -- g_target : {g_target_best} '
+              f'-- g_NONtarget : {g_NONtarget_best} -- func : {f_best} '
+              f'-- C_prim: {C_prim_best}')
+        print(gmm_table)
+        # Restore the original stdout
+        sys.stdout = original_stdout
 
 
 
