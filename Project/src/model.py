@@ -83,10 +83,8 @@ def MVG_kfold_wrapper(D, L):
             MVG_table.add_row([m, 'MVG', (0.1, 1, 1), minDCF0, '-'])
             minDCF1 = Kfold_cross_validation(DP, L, K, func=score_matrix_MVG, pi=0.5)[2]
             MVG_table.add_row([m, 'MVG', (0.5, 1, 1), minDCF1, '-'])
-            minDCF2 = Kfold_cross_validation(DP, L, K, func=score_matrix_MVG, C_fp=10)[2]
-            MVG_table.add_row([m, 'MVG', (0.1, 1, 10), minDCF2, '-'])
 
-            C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+            C_prim = np.mean([minDCF0, minDCF1])
             MVG_table.add_row(['-', '-', '-', '-', C_prim])
 
             if C_prim < Cprim_selected:
@@ -127,10 +125,8 @@ def NB_kfold_wrapper(D, L):
             NB_table.add_row([m, 'NB', (0.1, 1, 1), minDCF0, '-'])
             minDCF1 = Kfold_cross_validation(DP, L, K, func=score_matrix_NaiveBayes, pi=0.5)[2]
             NB_table.add_row([m, 'NB', (0.5, 1, 1), minDCF1, '-'])
-            minDCF2 = Kfold_cross_validation(DP, L, K, func=score_matrix_NaiveBayes, C_fp=10)[2]
-            NB_table.add_row([m, 'NB', (0.1, 1, 10), minDCF2, '-'])
 
-            C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+            C_prim = np.mean([minDCF0, minDCF1])
             NB_table.add_row(['-', '-', '-', '-', C_prim])
 
             if C_prim < Cprim_selected:
@@ -171,10 +167,8 @@ def TMVG_kfold_wrapper(D, L):
             TMVG_table.add_row([m, 'TMVG', (0.1, 1, 1), minDCF0, '-'])
             minDCF1 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedMVG, pi=0.5)[2]
             TMVG_table.add_row([m, 'TMVG', (0.5, 1, 1), minDCF1, '-'])
-            minDCF2 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedMVG, C_fp=10)[2]
-            TMVG_table.add_row([m, 'TMVG', (0.1, 1, 10), minDCF2, '-'])
 
-            C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+            C_prim = np.mean([minDCF0, minDCF1])
             TMVG_table.add_row(['-', '-', '-', '-', C_prim])
 
             if C_prim < Cprim_selected:
@@ -216,10 +210,8 @@ def TNB_kfold_wrapper(D, L):
             TNB_table.add_row([m, 'TNB', (0.1, 1, 1), minDCF0, '-'])
             minDCF1 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedNaiveBayes, pi=0.5)[2]
             TNB_table.add_row([m, 'TNB', (0.5, 1, 1), minDCF1, '-'])
-            minDCF2 = Kfold_cross_validation(DP, L, K, func=score_matrix_TiedNaiveBayes, C_fp=10)[2]
-            TNB_table.add_row([m, 'TNB', (0.1, 1, 10), minDCF2, '-'])
 
-            C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+            C_prim = np.mean([minDCF0, minDCF1])
             TNB_table.add_row(['-', '-', '-', '-', C_prim])
 
             if C_prim < Cprim_selected:
