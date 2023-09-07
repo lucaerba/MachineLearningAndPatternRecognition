@@ -18,9 +18,12 @@ tmvg_output_file = '../Out/tmvg_output.txt'
 tnb_output_file = '../Out/tnb_output.txt'
 logreg_output_file = '../Out/logreg_output.txt'
 svm_output_file = '../Out/svm_output.txt'
+svm_calibration_output = '../Out/svm_calibration_output.txt'
 gmm_output_file = '../Out/gmm_output.txt'
+logreg_output_file_Znorm = '../FINALoutputs/logreg_output_Znorm.txt'
 
-def PCA(D,m): # m = leading eigenvectors
+
+def PCA(D,m, cal=False): # m = leading eigenvectors
     N = len(D)
     mu = D.mean(1)
     DC = D - vcol(mu)
@@ -28,7 +31,10 @@ def PCA(D,m): # m = leading eigenvectors
     s, U = np.linalg.eigh(C)
     P = U[:, ::-1][:, 0:m]
     DP = np.dot(P.T, D)
-    return DP
+    if cal == False:
+        return DP
+    else:
+        return DP, P
 
 def LDA(D,L,m,N_classes = 2):
     N = len(D[0])
@@ -57,6 +63,7 @@ def LDA(D,L,m,N_classes = 2):
     DP = np.dot(W.T, D)
 
     return DP
+
 
 K = 5
 
@@ -111,6 +118,7 @@ def NB_kfold_wrapper(D, L):
     Cprim_selected = 1
     with open(nb_output_file, 'w') as f:
         sys.stdout = f
+
 
         for m in PCA_dim:
             t = time.time()
@@ -263,10 +271,7 @@ def logreg_kfold_wrapper(D, L):
                     _, _, minDCF1, l = logreg_wrapper(DP, L, l, pi=0.5)
                     logreg_table.add_row([m, 'Linear', l, (0.5, 1, 1), minDCF1, '-'])
 
-                    _, _, minDCF2, l = logreg_wrapper(DP, L, l, C_fp=10)
-                    logreg_table.add_row([m, 'Linear', l, (0.1, 1, 10), minDCF2, '-'])
-
-                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    C_prim = np.mean([minDCF0, minDCF1])
                     logreg_table.add_row(['-', '-', '-', '-', '-', C_prim])
 
                     if C_prim < Cprim_selected_lin:
@@ -281,10 +286,7 @@ def logreg_kfold_wrapper(D, L):
                     _, _, minDCF1, l = QUAD_log_reg(DP, L, l, pi=0.5)
                     logreg_table.add_row([m, 'Quadratic', l, (0.5, 1, 1), minDCF1, '-'])
 
-                    _, _, minDCF2, l = QUAD_log_reg(DP, L, l, C_fp=10)
-                    logreg_table.add_row([m, 'Quadratic', l, (0.1, 1, 10), minDCF2, '-'])
-
-                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    C_prim = np.mean([minDCF0, minDCF1])
                     logreg_table.add_row(['-', '-', '-', '-', '-', C_prim])
 
                     if C_prim < Cprim_selected_quad:
@@ -307,6 +309,57 @@ def logreg_kfold_wrapper(D, L):
         # Restore the original stdout
         sys.stdout = original_stdout
 
+##################################################### Logreg Z-norm ##########################################################################################################
+
+logreg_Znorm_table = PrettyTable()
+logreg_Znorm_table.field_names = ['PCA', 'Type', 'lambda', 'Working Point', 'minDCF', 'C_prim']
+def logreg_Znorm_wrapper(D, L):
+    original_stdout = sys.stdout
+    Cprim_selected_quad = 1
+    with open(logreg_output_file_Znorm, 'w') as f:
+        sys.stdout = f
+
+        PCA_dim = ['No PCA'] + [9,8,7]
+        lam = [1e-6, 10 ** -5, 10 ** -4, 10 ** -3, 10 ** -2, 10 ** -1, 1, 10]
+        for m in PCA_dim:
+            t = time.time()
+            sys.stdout = original_stdout
+            print(f'starting PCA: {m}')
+            sys.stdout = f
+            if m == 'No PCA':
+                DP = D
+            else:
+                DP = PCA(D, m)
+            for l in lam:
+
+                _, _, minDCF0, l = QUAD_log_reg(DP, L, l, Znorm=True)
+                logreg_Znorm_table.add_row([m, 'Quadratic', l, (0.1, 1, 1), minDCF0, '-'])
+
+                _, _, minDCF1, l = QUAD_log_reg(DP, L, l, pi=0.5, Znorm=True)
+                logreg_Znorm_table.add_row([m, 'Quadratic', l, (0.5, 1, 1), minDCF1, '-'])
+
+                C_prim = np.mean([minDCF0, minDCF1])
+                logreg_Znorm_table.add_row(['-', '-', '-', '-', '-', C_prim])
+
+                if C_prim < Cprim_selected_quad:
+                    m_best_quad = m
+                    l_best_quad = l
+                    C_prim_best_quad = C_prim
+                    Cprim_selected_quad = C_prim_best_quad
+
+            elapsed_time = time.time() - t
+            sys.stdout = original_stdout
+            print(f'finished PCA: {m}, elapsed time : {elapsed_time} s')
+            sys.stdout = f
+
+        print(f'Quad BEST --> PCA : {m_best_quad} -- l_best : {l_best_quad} '
+              f'-- C_prim: {C_prim_best_quad}')
+        print(logreg_Znorm_table)
+
+        # Restore the original stdout
+        sys.stdout = original_stdout
+
+
 
 
 ##############################################################################################################################################################################
@@ -325,7 +378,7 @@ def SVM_wrapper(D, L):
     with open(svm_output_file, 'w') as f:
         sys.stdout = f
         
-        PCA_dim =  ['No PCA'] + [aa for aa in range(2, D.shape[0])]
+        PCA_dim =  ['No PCA'] + [9,8,7,6]
         for m in PCA_dim:
             t = time.time()
             sys.stdout = original_stdout
@@ -337,10 +390,11 @@ def SVM_wrapper(D, L):
                 DP = PCA(D, m)
 
             # linear
-            cs = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]
+            cs = [1e-4, 1e-3, 1e-2, 1e-1, 1]
+            Ks = [0.1,1,10]
             for c in cs:
-                for K in [1, 10, 100, 1000]:
-                    svm = SVM(DP, L, c, K, Kernel.linear)
+                for K in Ks:
+                    svm = SVM(DP, L, c, K, Kernel(K=K).linear)
 
                     minDCF0 = svm.exec()
                     svm_table.add_row([m, 'Linear', c, '-', '-', K, (0.1, 1, 1), minDCF0, '-'])
@@ -348,10 +402,7 @@ def SVM_wrapper(D, L):
                     minDCF1 = svm.exec(pi=0.5)
                     svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.5, 1, 1), minDCF1, '-'])
 
-                    minDCF2 = svm.exec(C_fp=10)
-                    svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.1,1,10), minDCF0, '-'])
-
-                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    C_prim = np.mean([minDCF0, minDCF1])
                     svm_table.add_row(['-', '-', '-', '-', '-', '-', '-', '-', C_prim])
 
                     if C_prim < Cprim_selected_lin:
@@ -364,8 +415,8 @@ def SVM_wrapper(D, L):
             #polynomial
 
             for c_val in cs:
-                for K in [1, 10, 100, 1000]:
-                    pol_kern = Kernel(d=2)
+                for K in Ks:
+                    pol_kern = Kernel(d=2, K=K)
                     svm = SVM(DP, L, c_val, K, pol_kern.polynomial)
 
                     minDCF0 = svm.exec()
@@ -374,10 +425,7 @@ def SVM_wrapper(D, L):
                     minDCF1 = svm.exec(pi=0.5)
                     svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.5, 1, 1), minDCF1, '-'])
 
-                    minDCF2 = svm.exec(C_fp=10)
-                    svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.1,1,10), minDCF0, '-'])
-
-                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    C_prim = np.mean([minDCF0, minDCF1])
                     svm_table.add_row(['-', '-', '-', '-', '-', '-', '-', '-', C_prim])
 
                     if C_prim < Cprim_selected_poly2:
@@ -388,8 +436,8 @@ def SVM_wrapper(D, L):
                         C_prim_best_poly2 = C_prim
                         Cprim_selected_poly2 = C_prim_best_poly2
 
-                for K in [1, 10, 100, 1000]:
-                    pol_kern = Kernel(d=3)
+                for K in Ks:
+                    pol_kern = Kernel(d=3, K=K)
                     svm = SVM(DP, L, c_val, K, pol_kern.polynomial)
 
                     minDCF0 = svm.exec()
@@ -398,10 +446,7 @@ def SVM_wrapper(D, L):
                     minDCF1 = svm.exec(pi=0.5)
                     svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.5, 1, 1), minDCF1, '-'])
 
-                    minDCF2 = svm.exec(C_fp=10)
-                    svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.1,1,10), minDCF0, '-'])
-
-                    C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                    C_prim = np.mean([minDCF0, minDCF1])
                     svm_table.add_row(['-', '-', '-', '-', '-', '-', '-', '-', C_prim])
 
                     if C_prim < Cprim_selected_poly3:
@@ -413,10 +458,11 @@ def SVM_wrapper(D, L):
                         Cprim_selected_poly3 = C_prim_best_poly3
 
             #rbf
+            gs = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]
             for c_val in cs:
-                for K in [1, 10, 100, 1000]:
-                    for g in [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]:
-                        rbf_kern = Kernel(g)
+                for K in Ks:
+                    for g in gs:
+                        rbf_kern = Kernel(g=g, K=K)
                         svm = SVM(DP, L, c_val, K, rbf_kern.rbf_kernel)
 
                         minDCF0 = svm.exec()
@@ -425,10 +471,7 @@ def SVM_wrapper(D, L):
                         minDCF1 = svm.exec(pi=0.5)
                         svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.5, 1, 1), minDCF1, '-'])
 
-                        minDCF2 = svm.exec(C_fp=10)
-                        svm_table.add_row(['-', '-', '-', '-', '-', '-', (0.1, 1, 10), minDCF0, '-'])
-
-                        C_prim = np.mean([minDCF0, minDCF1, minDCF2])
+                        C_prim = np.mean([minDCF0, minDCF1])
                         svm_table.add_row(['-', '-', '-', '-', '-', '-', '-', '-', C_prim])
 
                         if C_prim < Cprim_selected_rbf:
@@ -460,6 +503,69 @@ def SVM_wrapper(D, L):
 
         # Restore the original stdout
         sys.stdout = original_stdout
+
+################################################## CALIBRATION ############################################################################
+
+
+PCA_best = 7
+c = 1
+g = 1e-1
+K = 0.1
+func = Kernel(g=g,K=K).rbf_kernel
+
+l = 0
+
+# pi_calibration = [0.1, 0.2, 0.5]
+
+def SVM_calibration(D, L, K_fold=5, seed=2):
+    nSamp = int(D.shape[1] / K_fold)
+    residuals = D.shape[1] - nSamp * K_fold
+    sub_arr = np.ones((K_fold, 1)) * nSamp
+
+    if residuals != 0:
+        sub_arr = np.array([int(x + 1) for x in sub_arr[:residuals]] + [int(x) for x in sub_arr[residuals:]])
+    np.random.seed(seed)
+    idx = np.random.permutation(D.shape[1])
+
+    scores = np.array([])
+    labels = np.array([])
+
+    for i in range(K_fold):
+        idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
+        idxTrain = [x for x in idx if x not in idxTest]
+        DTR = D[:, idxTrain]
+        DTE = D[:, idxTest]
+        LTR = L[idxTrain]
+        LTE = L[idxTest]
+
+
+        if PCA_best == "No PCA":
+            pass
+        else:
+            DTR = PCA(DTR, PCA_best)
+            DTE = PCA(DTE, PCA_best)
+
+        labels = np.hstack((labels, LTE))
+        svm = SVM(DTR, LTR, c, K, func)
+        scores = np.hstack((scores, svm.scores(DTR, LTR, DTE)))
+
+
+    np.random.seed(seed+1)
+    idx_new = np.random.permutation(scores.shape[0])
+    scores = scores[idx_new]
+    labels = labels[idx_new]
+
+    frac = 7/10
+    DTR = vrow(scores[:int(scores.shape[0]* frac)])
+    LTR = labels[:int(labels.shape[0] * frac)]
+    DTE = vrow(scores[int(scores.shape[0] * frac):])
+    LTE = labels[int(labels.shape[0] * frac):]
+
+    scores_cal, _, _ = logreg_wrapper(D,L,l, pi=0.5, C_fn=1, C_fp=1, cal=True, DTR=DTR, LTR=LTR, DTE=DTE, LTE=LTE)
+
+    evaluation.Bayes_error_plots(scores_cal, LTE)
+
+
 
 
 ##############################################################################################################################################################################

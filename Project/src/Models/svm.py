@@ -14,24 +14,32 @@ def vrow(v):
 ############################## SVM ##############################
 
 class Kernel:
-    def __init__(self, d=2, c=1, g=2, const=1):
+    def __init__(self, d=2, c=1, g=2, K=0.1, const=1):
        self.d = d
        self.c = c
        self.g = g
-       self.eps = 0
+       self.K = K
        self.const = const
 
-    def linear(x1, x2):
+    def linear(self, x1, x2):
         return np.dot(x1.T, x2)
-    
+
     def polynomial(self, x1, x2):
-        return (np.dot(x1.T, x2) + self.const) ** self.d + self.eps
-   
+        return (np.dot(x1.T, x2) + self.const) ** self.d + self.K**2
+
+    # def rbf_kernel(self, x1, x2):
+    #     kernel = np.zeros((x1.shape[1], x2.shape[1]))
+    #     for i in range(x1.shape[1]):
+    #         for j in range(x2.shape[1]):
+    #             kernel[i, j] = np.exp(-self.g * (np.linalg.norm(x1[:, i] - x2[:, j]) ** 2)) + self.K**2
+    #     return kernel
+
     def rbf_kernel(self, x1, x2):
-        kernel = np.zeros((x1.shape[1], x2.shape[1]))
-        for i in range(x1.shape[1]):
-            for j in range(x2.shape[1]):
-                kernel[i, j] = np.exp(-self.g * (np.linalg.norm(x1[:, i] - x2[:, j]) ** 2)) + self.eps
+        x1_norm_squared = np.sum(x1 ** 2, axis=0)
+        x2_norm_squared = np.sum(x2 ** 2, axis=0)
+        dot_product = np.dot(x1.T, x2)
+        distances = x1_norm_squared[:, np.newaxis] + x2_norm_squared - 2 * dot_product
+        kernel = np.exp(-self.g * distances) + self.K ** 2
         return kernel
 
 class SVM:
@@ -41,11 +49,12 @@ class SVM:
         self.c = c
         self.K = K
         self.fun = fun
-        
+
     def matrix_H_kernel(self, DTR, LTR):
         z = np.where(LTR == 1, 1, -1)
         H = vcol(z) * vrow(z) * self.fun(DTR,DTR)
         self.H = H
+        self.model = f'{self.fun.__name__}'
         
     def L_d(self, alpha):
         L_d = 0.5 * np.dot(vrow(alpha), np.dot(self.H, vcol(alpha))).ravel() - alpha.sum()
@@ -66,11 +75,15 @@ class SVM:
                                             bounds=[(0, self.c)] * DTR.shape[1],
                                             maxfun=100000, maxiter=100000,
                                             factr=1.0)
-        omega_star = np.dot(DTR, vcol(x) * vcol(z))
-
-        scores = np.dot(omega_star.T, DTE)
-        scores = scores.ravel()
-        return scores
+        global scores
+        if self.model == 'linear':
+            omega_star = np.dot(DTR, vcol(x) * vcol(z))
+            scores = np.dot(omega_star.T, DTE)
+        else:
+            kernel = self.fun(DTR, DTE)
+            s_sum = np.dot(x * vrow(z), kernel)
+            scores = np.sum(s_sum, axis=0)
+        return scores.ravel()
 
     def exec(self, K_fold=5, seed=1, pi=0.1, C_fn=1, C_fp=1):
         nSamp = int(self.D.shape[1] / K_fold)
@@ -105,7 +118,6 @@ class SVM:
             # err.append(1 - acc_i)
 
         return np.mean(minDCF)
-        
-        # print("minDCF: {} -- WP = ({}, {}, {})".format(np.mean(minDCF) , pi, C_fn, C_fp))
-        # print('error = {}'.format(np.mean(err)))
+
+
 

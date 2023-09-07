@@ -19,30 +19,28 @@ def main(seed=1,K=5):
 
     # D, L = input.load_iris_binary()
 
-    #plot
-    # plottering.plot_simple()
-    # plottering.plot_LDA(D,L)
-    # plottering.plot_correlations(D)
-    # plottering.plot_Scatter(D,L)
 
     #train
     
     # print("logreg...")
+    # model.logreg_Znorm_wrapper(D, L)
     # model.logreg_kfold_wrapper(D, L)
-    print("MVG...")
-    model.MVG_kfold_wrapper(D, L)
-    print("NB...")
-    model.NB_kfold_wrapper(D, L)
-    print("TMVG...")
-    model.TMVG_kfold_wrapper(D, L)
-    print("TNB...")
-    model.TNB_kfold_wrapper(D, L)
+
+    # print("MVG...")
+    # model.MVG_kfold_wrapper(D, L)
+    # print("NB...")
+    # model.NB_kfold_wrapper(D, L)
+    # print("TMVG...")
+    # model.TMVG_kfold_wrapper(D, L)
+    # print("TNB...")
+    # model.TNB_kfold_wrapper(D, L)
+
     # print("GMM...")
     # model.GMM_wrapper(D, L)
-    # print("SVM...")
+
+    print("SVM...")
     # model.SVM_wrapper(D, L)
-     
-    #calibration
+    model.SVM_calibration(D, L)
 
     #evaluation
        

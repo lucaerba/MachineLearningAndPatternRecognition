@@ -67,7 +67,6 @@ def compute_min_DCF(scores, labels, pi, Cfn, Cfp):
         dcfList.append(compute_act_DCF(scores, labels, pi, Cfn, Cfp, th=_th))
     return np.array(dcfList).min()
 
-#TODO testare e vedere se funziona
 def DET_plot(scores, labels):
     #compute the set of threasholds from test scores, order them in increasing order and keep unique values
     thresholds = np.array(scores)
