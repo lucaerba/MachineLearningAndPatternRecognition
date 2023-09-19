@@ -44,7 +44,7 @@ def logreg_obj(v, DTR, LTR, l):
 
     return J(w, b, DTR, LTR, l)
 #-----------------------------------------#
-def logreg_wrapper(D,L,l,seed=0, pi=0.1, C_fn=1, C_fp=1, cal=False, DTR=[], LTR=[], DTE=[], LTE=[]):
+def logreg_wrapper(D,L,l,seed=0, pi=0.1, C_fn=1, C_fp=1, cal=False, DTR=[], LTR=[], DTE=[]):
     if cal == False:
         nSamp = int(D.shape[1] / K)
         residuals = D.shape[1] - nSamp * K
@@ -81,13 +81,14 @@ def logreg_wrapper(D,L,l,seed=0, pi=0.1, C_fn=1, C_fp=1, cal=False, DTR=[], LTR=
                                               args=(DTR, LTR, l))
         S = np.dot(x[0:-1].T, DTE) + x[-1]
         llr = S - np.log(pi/(1-pi))
-    return llr, x[0:-1], x[-1]
+        return llr, x[0:-1], x[-1]
+
 
 def vec(x):
     x = vcol(x)
     return np.dot(x,x.T).flatten()
 
-def QUAD_log_reg(D,L,l,seed=0, pi=0.1, C_fn=1, C_fp=1, Znorm=False):
+def QUAD_log_reg(D,L,l,seed=1, pi=0.1, C_fn=1, C_fp=1, Znorm=False):
     nSamp = int(D.shape[1] / K)
     residuals = D.shape[1] - nSamp * K
     sub_arr = np.ones((K, 1)) * nSamp
@@ -98,6 +99,7 @@ def QUAD_log_reg(D,L,l,seed=0, pi=0.1, C_fn=1, C_fp=1, Znorm=False):
     err = []
     S_sc = []
     minDCF = []
+    actDCF = []
     for i in range(K):
         idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
         idxTrain = [x for x in idx if x not in idxTest]
@@ -135,5 +137,26 @@ def QUAD_log_reg(D,L,l,seed=0, pi=0.1, C_fn=1, C_fp=1, Znorm=False):
         err.append(1 - len(check[check == True]) / len(LTE))
 
         minDCF.append(evaluation.minDCF(S, LTE, pi, C_fn, C_fp))
+        actDCF.append(evaluation.Bayes_risk_normalized(S, LTE, pi, C_fn, C_fp))
     # print(l)
-    return np.mean(err), S_sc[np.argmin(err)], np.mean(minDCF), l
+    return np.mean(actDCF), np.mean(minDCF), S, l
+
+def scores_logreg(DTR, LTR, DTE, l, Znorm=True):
+    DTR_vec = np.apply_along_axis(vec, 0, DTR)
+    PHI_DTR = np.vstack([DTR_vec, DTR])
+
+    DTE_vec = np.apply_along_axis(vec, 0, DTE)
+    PHI_DTE = np.vstack([DTE_vec, DTE])
+
+    if Znorm == True:
+        PHI_DTR, PHI_DTE = Z_norm(PHI_DTR, PHI_DTE)
+    else:
+        pass
+
+    (x, f, d) = sp.optimize.fmin_l_bfgs_b(logreg_obj,
+                                          np.zeros(PHI_DTR.shape[0] + 1),
+                                          approx_grad=True,
+                                          args=(PHI_DTR, LTR, l))
+
+    S = np.dot(x[0:-1].T, PHI_DTE) + x[-1]
+    return S

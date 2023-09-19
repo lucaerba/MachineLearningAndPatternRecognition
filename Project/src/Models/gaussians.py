@@ -51,7 +51,7 @@ def score_matrix_MVG(DTR, LTR, DTE):
         D_class = DTE
         like = vrow(np.array((logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
         S.extend(like)
-    SJoint = np.array(S) + prior_prob
+    SJoint = np.array(S) # + prior_prob
     return SJoint
 
 def score_matrix_NaiveBayes(DTR, LTR, DTE):
@@ -69,7 +69,7 @@ def score_matrix_NaiveBayes(DTR, LTR, DTE):
         like = vrow(np.array((logpdf_GAU_ND(D_class, mu_ML[i], C_ML[i]))))
         S.extend(like)
 
-    Sjoint = np.array(S) + prior_prob
+    Sjoint = np.array(S) # + prior_prob
     return Sjoint
 
 def score_matrix_TiedMVG(DTR, LTR, DTE):
@@ -92,7 +92,7 @@ def score_matrix_TiedMVG(DTR, LTR, DTE):
         like = vrow(np.array((logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
         S.extend(like)
 
-    SJoint = np.array(S) + prior_prob
+    SJoint = np.array(S) # + prior_prob
     return SJoint
 
 def score_matrix_TiedNaiveBayes(DTR, LTR, DTE):
@@ -116,7 +116,7 @@ def score_matrix_TiedNaiveBayes(DTR, LTR, DTE):
         like = vrow(np.array((logpdf_GAU_ND(D_class, mu_ML[i], sigma_star))))
         S.extend(like)
 
-    SJoint = np.array(S) + prior_prob
+    SJoint = np.array(S) # + prior_prob
     return SJoint
 
 def predicted_labels_and_accuracy(S, LTE):
@@ -140,6 +140,7 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG, pi=0.1, C_fn=
     err = []
     pred = []
     minDCF = []
+    actDCF = []
     for i in range(K):
         idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i+1]))]
         idxTrain = [x for x in idx if x not in idxTest]
@@ -155,6 +156,12 @@ def Kfold_cross_validation(D, L, K, seed=1, func=score_matrix_MVG, pi=0.1, C_fn=
         scores = - Sjoint[0,:] + Sjoint[1,:]
 
         minDCF.append(evaluation.minDCF(scores, LTE, pi, C_fn, C_fp))
+        actDCF.append(evaluation.Bayes_risk_normalized(scores, LTE, pi, C_fn, C_fp))
 
-    return np.min(err),pred[np.argmin(err)],np.mean(minDCF)
+    return np.mean(actDCF),scores,np.mean(minDCF)
+
+def scores_gaussian(DTR, LTR, DTE, func=score_matrix_MVG):
+    Sjoint = func(DTR, LTR, DTE)
+    scores = - Sjoint[0, :] + Sjoint[1, :]
+    return scores
 

@@ -220,10 +220,12 @@ tmvg_file = '../FINALoutputs/tmvg_output.txt'
 tnb_file = '../FINALoutputs/tnb_output.txt'
 logreg_file = '../FINALoutputs/logreg_output.txt'
 logreg_Znorm_file = '../FINALoutputs/logreg_output_Znorm.txt'
+svm_file = '../FINALoutputs/svm_output.txt'
 
 fields_gmm = ['PCA','g (target)','g (NON target)','function', 'Working Point','minDCF','C_prim']
 fields_gaussians = ['PCA', 'Type', 'Working Point', 'minDCF', 'C_prim']
 fields_logreg = ['PCA', 'Type', 'lambda', 'Working Point', 'minDCF', 'C_prim']
+fields_svm = ['PCA', 'Kernel', 'c', 'degree', 'gamma',  'K', 'Working Point',  'minDCF',  'C_prim']
 
 def PrettyTab_to_data(tab, fields, model, Znorm=False):
     with open(tab, 'r') as file:
@@ -270,21 +272,38 @@ def PrettyTab_to_data(tab, fields, model, Znorm=False):
                 for el in array[2::3,array.shape[1]-1]:
                     C_Znorm.append(float(el))
                 return C_Znorm
-
+    elif model == 'svm':
+        with open('../FINALoutputs/table_data.csv', 'r') as csvfile:
+            array = pd.read_csv(csvfile)
+            array = array.values.tolist()
+            array = np.array(array)
+            flag_lin = array[0::3,1] == 'Linear'
+            flag_d2 = array[0::3,3] == '2'
+            flag_d3 = array[0::3, 3] == '3'
+            flag_RBF = array[0::3, 1] == 'RBF'
+            C_prim = np.asarray(array[2::3, -1], dtype = np.float64)
+            if flag_lin.any() == True:
+                C_prim_list_lin = C_prim[flag_lin]
+            if flag_d2.any() == True:
+                C_prim_list_poly2 = C_prim[flag_d2]
+            if flag_d3.any() == True:
+                C_prim_list_poly3 = C_prim[flag_d3]
+            if flag_RBF.any() == True:
+                C_prim_list_RBF = C_prim[flag_RBF]
+            return C_prim_list_lin, C_prim_list_poly2, C_prim_list_poly3, C_prim_list_RBF
 
 
 
 def C_prim_plot(C_prim_list, ind_PCA=0, model='gmm', l='', C_Znorm=[], j=0):
 
-    C_prim_tot = len(C_prim_list)
-
-    if C_Znorm != []:
-        C_Znorm = np.reshape(C_Znorm, (4, int(len(C_Znorm) / 4)))
-
-    tot_PCA = ['No PCA'] + [a for a in range(2,10)]
-    C_prim_list_forPCA = np.reshape(C_prim_list, (9,int(C_prim_tot/9))) # now each row represents a different PCA
-
     if model == 'gmm':
+        C_prim_tot = len(C_prim_list)
+
+        if C_Znorm != []:
+            C_Znorm = np.reshape(C_Znorm, (4, int(len(C_Znorm) / 4)))
+
+        tot_PCA = ['No PCA'] + [a for a in range(2, 10)]
+        C_prim_list_forPCA = np.reshape(C_prim_list, (9, int(C_prim_tot / 9)))
         n = 5  # first n K_target values
         C_prim_list_fullMVG = C_prim_list_forPCA[:,0::3] # C_prim values are stripped
         C_plot_data = np.reshape(C_prim_list_fullMVG[ind_PCA][:int(5*n)], (n,5)) # only the first n K_target are selected
@@ -299,7 +318,7 @@ def C_prim_plot(C_prim_list, ind_PCA=0, model='gmm', l='', C_Znorm=[], j=0):
             ax.bar(np.arange(n) + offset, C_plot_data[:, i], width, label='\\textbf{' + f'NON target K: {2 ** i}' + '}', color=colors[i])
             multiplier += 1
         if ind_PCA == 0:
-            plt.text(0.27,0.21,'${:.3f}$'.format(np.min(C_plot_data)))
+            plt.text(0.27,0.21,'${:.3f}$'.format(np.min(C_plot_data)), fontsize=14)
         ax.set_ylabel('\\textbf{$C_{prim}$}', fontsize=16)
         ax.set_xlabel('\\textbf{Target K}', fontsize=16)
         ax.set_title('\\textbf{' + f'PCA value: {tot_PCA[ind_PCA]}' + '}', fontsize=20)
@@ -307,12 +326,19 @@ def C_prim_plot(C_prim_list, ind_PCA=0, model='gmm', l='', C_Znorm=[], j=0):
         plt.tick_params(axis='y', labelsize=16)
         ax.set_xticks(np.arange(n) + width * 2, K[:n])
         ax.legend(loc='upper left', ncols=2, fontsize=12)
-        ax.set_ylim(0, 1)
+        ax.set_ylim(0, 0.45)
         plt.savefig(f'../Plots/gmm_Cprim_PCA: {tot_PCA[ind_PCA]}')
         # plt.show()
         plt.close()
 
     elif model == 'MVG':
+        C_prim_tot = len(C_prim_list)
+
+        if C_Znorm != []:
+            C_Znorm = np.reshape(C_Znorm, (4, int(len(C_Znorm) / 4)))
+
+        tot_PCA = ['No PCA'] + [a for a in range(2, 10)]
+        C_prim_list_forPCA = np.reshape(C_prim_list, (9, int(C_prim_tot / 9)))
         plt.figure()
         tot_PCA = [tot_PCA[0]] + tot_PCA[::-1][:-1]
         C_prim_list_forPCA = list(C_prim_list_forPCA.ravel())
@@ -334,6 +360,13 @@ def C_prim_plot(C_prim_list, ind_PCA=0, model='gmm', l='', C_Znorm=[], j=0):
         plt.close()
 
     elif model == 'logreg':
+        C_prim_tot = len(C_prim_list)
+
+        if C_Znorm != []:
+            C_Znorm = np.reshape(C_Znorm, (4, int(len(C_Znorm) / 4)))
+
+        tot_PCA = ['No PCA'] + [a for a in range(2, 10)]
+        C_prim_list_forPCA = np.reshape(C_prim_list, (9, int(C_prim_tot / 9)))
         plt.figure()
         l = l[:8]
         C_plot_data = C_prim_list_forPCA[ind_PCA,:]
@@ -376,7 +409,44 @@ def C_prim_plot(C_prim_list, ind_PCA=0, model='gmm', l='', C_Znorm=[], j=0):
         # plt.show()
         plt.close()
 
-
+    elif model == 'svm poly':
+        C_prim_list_d2 = C_prim_list[0, 2::3]
+        C_prim_list_d3 = C_prim_list[1, 2::3]
+        C_prim_list_forPCA_d2 = np.reshape(C_prim_list_d2, (5, int(25 / 5)))
+        C_prim_list_forPCA_d3 = np.reshape(C_prim_list_d3, (5, int(25 / 5)))
+        tot_PCA = ['No PCA',9,8,7,6]
+        colors = ['fuchsia', 'red', 'orange', 'gold', 'green']
+        if ind_PCA == 0:
+            plt.figure()
+        cs = [1e-4, 1e-3, 1e-2, 1e-1, 1]
+        C_plot_data_d2 = C_prim_list_forPCA_d2[ind_PCA,:]
+        C_plot_data_d3 = C_prim_list_forPCA_d3[ind_PCA, :]
+        plt.plot(cs, C_plot_data_d2, label='\\textbf{SVM poly (2)} ' + f'PCA: {tot_PCA[ind_PCA]}',
+                 color=colors[ind_PCA], linewidth=3 if ind_PCA == 1 else 2,
+                 zorder=np.inf if ind_PCA == 1 else ind_PCA)
+        # plt.plot(cs, C_plot_data_d3, label='\\textbf{SVM poly (3)} ' + f'PCA: {tot_PCA[ind_PCA]}', color='blue', linewidth=2)
+        plt.legend(fontsize=16)
+        plt.xlabel('\\textbf{c}', fontsize=16)
+        plt.xscale('log')
+        plt.ylabel('$C_{prim}$', fontsize=16)
+        if ind_PCA == 1:
+            plt.annotate('\\textbf{'+f'{np.min(C_plot_data_d2):.3f}'+'}',  # this is the text
+                     (1.1e-4,C_plot_data_d2[0]-0.02),  # these are the coordinates to position the label
+                     textcoords="offset points",  # how to position the text
+                     xytext=(0, 0),  # distance from text to points (x,y)
+                     ha='center',
+                     color=colors[ind_PCA], fontsize=14)
+        ax = plt.gca()
+        ax.set_xticks(cs)
+        # ax.set_xlim(min(cs)-100, max(cs))
+        ax.set_ylim(0.1,0.5)
+        plt.tick_params(axis='x', labelsize=14)
+        plt.tick_params(axis='y', labelsize=14)
+        plt.grid()
+        if ind_PCA == 4:
+            # plt.show()
+            plt.savefig(f'../Plots/SVM_poly_d2', bbox_inches='tight')
+            plt.close()
 
 
 
@@ -393,16 +463,16 @@ if __name__ == '__main__':
     # DP = LDA(D,L,m=1)
     # plot_LDA(DP,L)
 
-    explained_variance_plot(D)
+    # explained_variance_plot(D)
 
     # plot_correlations(D)
     # plot_correlations(D[:,L == 1], 'Blues', subset='same speaker')
     # plot_correlations(D[:,L == 0], 'Reds', subset='different speaker')
 
 
-    # C = PrettyTab_to_data(gmm_file, fields_gmm, model='gmm')
-    # for i in range(9):
-    #     C_prim_plot(C, i, model='gmm')
+    C = PrettyTab_to_data(gmm_file, fields_gmm, model='gmm')
+    for i in [0]: # range(9) for all PCA
+        C_prim_plot(C, i, model='gmm')
 
     # C = PrettyTab_to_data(nb_file, fields_gaussians)
     # C_prim_plot(C, model='MVG')
@@ -412,3 +482,10 @@ if __name__ == '__main__':
     # lambda_list = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]
     # for i, j in zip([0, 6, 7, 8], [0,3,2,1]): #range(9) if no Znorm
     #     C_prim_plot(C_quad, i, model='logreg', l=lambda_list, C_Znorm=C_Znorm, j=j)
+
+    # C_lin, C_poly2, C_poly3, C_rbf = PrettyTab_to_data(svm_file, fields_svm, model='svm')
+    # C_polyTOT = np.append(C_poly2, C_poly3)
+    # C_polyTOT = C_polyTOT[np.newaxis,:]
+    # C_polyTOT = np.reshape(C_polyTOT, (2,int(C_polyTOT.shape[1]/2)))
+    # for i in range(5):
+    #     C_prim_plot(C_polyTOT, i, model='svm poly')

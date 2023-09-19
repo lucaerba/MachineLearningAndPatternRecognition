@@ -97,6 +97,7 @@ class SVM:
 
         # err = []
         minDCF = []
+        actDCF = []
         for i in range(K_fold):
             idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
             idxTrain = [x for x in idx if x not in idxTest]
@@ -111,13 +112,14 @@ class SVM:
             scores = SVM.scores(self, DTR, LTR, DTE)
 
             minDCF.append(evaluation.minDCF(scores, LTE, pi, C_fn, C_fp))
+            actDCF.append(evaluation.Bayes_risk_normalized(scores, LTE, pi, C_fn, C_fp))
 
             # predicted_labels = np.where(scores > 0, 1, 0)
             # check = predicted_labels == LTE
             # acc_i = len(check[check == True]) / len(LTE)
             # err.append(1 - acc_i)
 
-        return np.mean(minDCF)
+        return np.mean(actDCF), np.mean(minDCF), scores
 
 
 

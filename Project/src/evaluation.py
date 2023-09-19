@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def confusion_matrix(pred, f_labels):
     confusion_matrix = np.zeros((2,2))
     for ii in range(len(pred)):
-        confusion_matrix[pred[ii]][f_labels[ii]] += 1
+        confusion_matrix[int(pred[ii])][int(f_labels[ii])] += 1
     return confusion_matrix
 
 def Bayes_risk(p, C_fn, C_fp, pred, f_labels):
@@ -61,7 +61,7 @@ def ROC_curve(f_llr,f_labels):
     plt.xlim([0,1])
     return plt.show()
 
-def DET_curve(f_llr,f_labels):
+def DET_curve(f_llr,f_labels,model='MVG',color='red'):
     t_set = np.sort(np.append(f_llr, [np.inf, -np.inf]))
     FNR = []
     FPR = []
@@ -71,30 +71,17 @@ def DET_curve(f_llr,f_labels):
         M = confusion_matrix(pred, f_labels)
         FNR.append(M[0][1] / (M[0][1] + M[1][1]))
         FPR.append(M[1][0] / (M[0][0] + M[1][0]))
-    plt.figure()
-    plt.plot(FPR, FNR)
-    plt.xlabel('FPR')
-    plt.ylabel('FNR')
-    return plt.show()
+    plt.plot(FPR, FNR, color=color, label='\\textbf{'+f'{model}'+'}')
+    plt.legend(fontsize=14)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel('\\textbf{FPR}', fontsize=16)
+    plt.ylabel('\\textbf{FNR}', fontsize=16)
+    plt.tick_params(axis='x', labelsize=16)
+    plt.tick_params(axis='y', labelsize=16)
 
 
-def Bayes_error_plots(llr,labels):
-    plt.figure()
-    try:
-        for i in range(len(llr)):
-            DCF_min = []
-            DCF = []
-            effPriorLogOdds = np.linspace(-3, 3, 25)
-            for p_tilde in effPriorLogOdds:
-                prior = 1 / (1 + np.exp(-p_tilde))
-                DCF.append(Bayes_risk_normalized(llr[i],labels[i],prior,1,1))
-                DCF_min.append(minDCF(llr[i],labels[i],prior,1,1))
-            plt.plot(effPriorLogOdds, DCF, label= 'DCF' if i == 0 else 'DCF_eps1', color ='r' if i == 0 else 'y')
-            plt.plot(effPriorLogOdds, DCF_min, label='min DCF' if i == 0 else 'min DCF_eps1', color ='b' if i == 0 else 'c')
-        plt.legend()
-        plt.ylim([0, 1.1])
-        plt.xlim([-3, 3])
-    except: TypeError
+def Bayes_error_plots(llr,labels,pi=None,color='red',model='MVG',i_col=0):
     DCF_min = []
     DCF = []
     effPriorLogOdds = np.linspace(-3, 3, 25)
@@ -102,12 +89,15 @@ def Bayes_error_plots(llr,labels):
         prior = 1 / (1 + np.exp(-p_tilde))
         DCF.append(Bayes_risk_normalized(llr, labels, prior, 1, 1))
         DCF_min.append(minDCF(llr, labels, prior, 1, 1))
-    plt.plot(effPriorLogOdds, DCF, label='DCF', color='r')
-    plt.plot(effPriorLogOdds, DCF_min, label='min DCF', color='b')
-    plt.legend(fontsize=16)
+    DCF = np.fmin(DCF, 1)
+    DCF_min = np.fmin(DCF_min, 1)
+    plt.plot(effPriorLogOdds, DCF, label='\\textbf{'+ f'{model}' + ' (actDCF)}', color=color)
+    plt.plot(effPriorLogOdds, DCF_min, ':', label='\\textbf{'+ f'{model}' +'(minDCF)}', color=color)
+    plt.legend(fontsize=14)
+    plt.ylabel('\\textbf{$C_{prim}$}', fontsize=16)
+    plt.xlabel('\\textbf{$log\left(\\frac{\pi}{1-\pi}\\right)$}', fontsize=16)
     plt.tick_params(axis='x', labelsize=16)
     plt.tick_params(axis='y', labelsize=16)
     plt.grid()
-    plt.ylim([0, 1.1])
+    # plt.ylim([0, 1.1])
     plt.xlim([-3, 3])
-    return plt.show()

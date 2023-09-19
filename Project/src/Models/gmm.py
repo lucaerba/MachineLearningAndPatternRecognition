@@ -164,6 +164,7 @@ def Kfold_cross_validation_GMM(D, L, K, G_Target, G_nonTarget, pi=0.1, C_fn=1, C
     np.random.seed(seed)
     idx = np.random.permutation(D.shape[1])
     err = []
+    actDCF = []
     minDCF = []
     for i in range(K):
         idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i+1]))]
@@ -194,10 +195,25 @@ def Kfold_cross_validation_GMM(D, L, K, G_Target, G_nonTarget, pi=0.1, C_fn=1, C
 
         llr = ll1-ll0
         minDCF.append(evaluation.minDCF(llr,LTE,pi,C_fn,C_fp))
+        actDCF.append(evaluation.Bayes_risk_normalized(llr,LTE,pi,C_fn,C_fp))
 
         err.append(1-acc_i)
 
-    return np.mean(err), np.mean(minDCF)
+
+    return np.mean(minDCF), np.mean(minDCF), llr
+
+def scores_gmm(DTR, LTR, DTE, G_Target, G_nonTarget, func=GMM_EM):
+    DTR0 = DTR[:, LTR == 0]
+    gmm0 = LBG_gmm(DTR0, G_nonTarget, func)
+    DTR1 = DTR[:, LTR == 1]
+    gmm1 = LBG_gmm(DTR1, G_Target, func)
+
+    _, ll0 = logpdf_GMM(DTE, gmm0)
+    _, ll1 = logpdf_GMM(DTE, gmm1)
+
+    llr = ll1 - ll0
+    return llr
+
 
 def mu_and_sigma_ML(x):
     N = x.shape[1]

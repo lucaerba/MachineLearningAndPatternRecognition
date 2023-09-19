@@ -2,6 +2,8 @@ import scipy as sp
 import numpy as np    
 import threading
 import evaluation
+import matplotlib.pyplot as plt
+from itertools import combinations
 from prettytable import PrettyTable
 from Models.discriminative import * 
 from Models.gaussians import *
@@ -18,12 +20,14 @@ tmvg_output_file = '../Out/tmvg_output.txt'
 tnb_output_file = '../Out/tnb_output.txt'
 logreg_output_file = '../Out/logreg_output.txt'
 svm_output_file = '../Out/svm_output.txt'
-svm_calibration_output = '../Out/svm_calibration_output.txt'
+# svm_calibration_output = '../Out/svm_calibration_output.txt'
 gmm_output_file = '../Out/gmm_output.txt'
 logreg_output_file_Znorm = '../FINALoutputs/logreg_output_Znorm.txt'
+best_output_file = '../FINALoutputs/best_models.txt'
+fusion_output_file = '../FINALoutputs/fusion_models.txt'
 
 
-def PCA(D,m, cal=False): # m = leading eigenvectors
+def PCA(D,m, m_eig=False): # m = leading eigenvectors
     N = len(D)
     mu = D.mean(1)
     DC = D - vcol(mu)
@@ -31,7 +35,7 @@ def PCA(D,m, cal=False): # m = leading eigenvectors
     s, U = np.linalg.eigh(C)
     P = U[:, ::-1][:, 0:m]
     DP = np.dot(P.T, D)
-    if cal == False:
+    if m_eig == False:
         return DP
     else:
         return DP, P
@@ -504,68 +508,6 @@ def SVM_wrapper(D, L):
         # Restore the original stdout
         sys.stdout = original_stdout
 
-################################################## CALIBRATION ############################################################################
-
-
-PCA_best = 7
-c = 1
-g = 1e-1
-K = 0.1
-func = Kernel(g=g,K=K).rbf_kernel
-
-l = 0
-
-# pi_calibration = [0.1, 0.2, 0.5]
-
-def SVM_calibration(D, L, K_fold=5, seed=2):
-    nSamp = int(D.shape[1] / K_fold)
-    residuals = D.shape[1] - nSamp * K_fold
-    sub_arr = np.ones((K_fold, 1)) * nSamp
-
-    if residuals != 0:
-        sub_arr = np.array([int(x + 1) for x in sub_arr[:residuals]] + [int(x) for x in sub_arr[residuals:]])
-    np.random.seed(seed)
-    idx = np.random.permutation(D.shape[1])
-
-    scores = np.array([])
-    labels = np.array([])
-
-    for i in range(K_fold):
-        idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
-        idxTrain = [x for x in idx if x not in idxTest]
-        DTR = D[:, idxTrain]
-        DTE = D[:, idxTest]
-        LTR = L[idxTrain]
-        LTE = L[idxTest]
-
-
-        if PCA_best == "No PCA":
-            pass
-        else:
-            DTR = PCA(DTR, PCA_best)
-            DTE = PCA(DTE, PCA_best)
-
-        labels = np.hstack((labels, LTE))
-        svm = SVM(DTR, LTR, c, K, func)
-        scores = np.hstack((scores, svm.scores(DTR, LTR, DTE)))
-
-
-    np.random.seed(seed+1)
-    idx_new = np.random.permutation(scores.shape[0])
-    scores = scores[idx_new]
-    labels = labels[idx_new]
-
-    frac = 7/10
-    DTR = vrow(scores[:int(scores.shape[0]* frac)])
-    LTR = labels[:int(labels.shape[0] * frac)]
-    DTE = vrow(scores[int(scores.shape[0] * frac):])
-    LTE = labels[int(labels.shape[0] * frac):]
-
-    scores_cal, _, _ = logreg_wrapper(D,L,l, pi=0.5, C_fn=1, C_fp=1, cal=True, DTR=DTR, LTR=LTR, DTE=DTE, LTE=LTE)
-
-    evaluation.Bayes_error_plots(scores_cal, LTE)
-
-
 
 
 ##############################################################################################################################################################################
@@ -622,5 +564,332 @@ def GMM_wrapper(D, L):
         # Restore the original stdout
         sys.stdout = original_stdout
 
+############################################# BEST models ##############################################################################################################################
+
+# actual DCF
+best_table = PrettyTable()
+best_table.field_names = ['model', 'Working Point', 'actDCF', 'minDCF', 'C_prim']
+
+PCA_logreg = 7
+PCA_MVG = 8
+PCA_SVM = 9
+
+lam = 1e-5
+
+c = 1e-4
+K = 10
+
+g_target = 1
+g_NONtarget = 8
+
+def actual_DCF_and_scores(D, L):
+    original_stdout = sys.stdout
+
+    with open(best_output_file, 'w') as f:
+        sys.stdout = f
+
+        # MVG
+        DP = PCA(D,PCA_MVG)
+        actDCF0, scores_MVG0, minDCF0 = Kfold_cross_validation(DP, L, 5, func=score_matrix_MVG)
+        best_table.add_row(['MVG', (0.1,1,1), actDCF0, minDCF0, '-'])
+        actDCF1, scores_MVG1, minDCF1 = Kfold_cross_validation(DP, L, 5, func=score_matrix_MVG, pi=0.5)
+        best_table.add_row(['MVG', (0.5, 1, 1), actDCF1, minDCF1, '-'])
+        C_prim = np.mean([minDCF0, minDCF1])
+        best_table.add_row(['-', '-', '-', '-', C_prim])
+
+        # logreg
+        DP = PCA(D, PCA_logreg)
+        actDCF0, minDCF0, scores_logreg0, _ = QUAD_log_reg(DP, L, lam, Znorm=True)
+        best_table.add_row(['logreg', (0.1, 1, 1), actDCF0, minDCF0, '-'])
+        actDCF1, minDCF1, scores_logreg1, _ = QUAD_log_reg(DP, L, lam, pi=0.5, Znorm=True)
+        best_table.add_row(['logreg', (0.5, 1, 1), actDCF1, minDCF1, '-'])
+        C_prim = np.mean([minDCF0, minDCF1])
+        best_table.add_row(['-', '-', '-', '-', C_prim])
+
+        # SVM
+        DP = PCA(D, PCA_SVM)
+        pol_kern = Kernel(d=2, K=K)
+        svm = SVM(DP, L, c, K, pol_kern.polynomial)
+        actDCF0, minDCF0, scores_SVM0 = svm.exec()
+        best_table.add_row(['SVM', (0.1, 1, 1), actDCF0, minDCF0, '-'])
+        actDCF1, minDCF1, scores_SVM1 = svm.exec(pi=0.5)
+        best_table.add_row(['SVM', (0.5, 1, 1), actDCF1, minDCF1, '-'])
+        C_prim = np.mean([minDCF0, minDCF1])
+        best_table.add_row(['-', '-', '-', '-', C_prim])
+
+        # GMM
+        DP = D
+        actDCF0, minDCF0, scores_GMM0 = Kfold_cross_validation_GMM(DP, L, 5, g_target, g_NONtarget, func=GMM_EM)
+        best_table.add_row(['GMM', (0.1, 1, 1), actDCF0, minDCF0, '-'])
+        actDCF1, minDCF1, scores_GMM1 = Kfold_cross_validation_GMM(DP, L, 5, g_target, g_NONtarget, pi=0.5, func=GMM_EM)
+        best_table.add_row(['GMM', (0.5, 1, 1), actDCF1, minDCF1, '-'])
+        C_prim = np.mean([minDCF0, minDCF1])
+        best_table.add_row(['-', '-', '-', '-', C_prim])
+
+        print(best_table)
+        print(f'MVG scores app1: {scores_MVG0}')
+        print(f'MVG scores app2: {scores_MVG1}')
+        print(f'logreg scores app1: {scores_logreg0}')
+        print(f'logreg scores app2: {scores_logreg1}')
+        print(f'SVM scores app1: {scores_SVM0}')
+        print(f'SVM scores app2: {scores_SVM1}')
+        print(f'GMM scores app1: {scores_GMM0}')
+        print(f'GMM scores app2: {scores_GMM1}')
+
+        sys.stdout = original_stdout
 
 
+
+################################################## CALIBRATION ############################################################################
+
+def calibration(D, L, K_fold=5, seed=1, model='MVG'):
+    nSamp = int(D.shape[1] / K_fold)
+    residuals = D.shape[1] - nSamp * K_fold
+    sub_arr = np.ones((K_fold, 1)) * nSamp
+
+    if residuals != 0:
+        sub_arr = np.array([int(x + 1) for x in sub_arr[:residuals]] + [int(x) for x in sub_arr[residuals:]])
+    np.random.seed(seed)
+    idx = np.random.permutation(D.shape[1])
+
+    scores = np.array([])
+    labels = np.array([])
+
+    for i in range(K_fold):
+        idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
+        idxTrain = [x for x in idx if x not in idxTest]
+        DTR = D[:, idxTrain]
+        DTE = D[:, idxTest]
+        LTR = L[idxTrain]
+        LTE = L[idxTest]
+
+
+        if model == "MVG":
+            DTR, P = PCA(DTR, PCA_MVG, m_eig=True)
+            DTE = np.dot(P.T, DTE)
+
+            labels = np.hstack((labels, LTE))
+            scores = np.hstack((scores, scores_gaussian(DTR, LTR, DTE)))
+        if model == "logreg":
+            DTR, P = PCA(DTR, PCA_logreg, m_eig=True)
+            DTE = np.dot(P.T, DTE)
+
+            labels = np.hstack((labels, LTE))
+            scores = np.hstack((scores, scores_logreg(DTR, LTR, DTE, lam)))
+        if model == "SVM":
+            DTR, P = PCA(DTR, PCA_SVM, m_eig=True)
+            DTE = np.dot(P.T, DTE)
+
+            labels = np.hstack((labels, LTE))
+            pol_kern = Kernel(d=2, K=K)
+            svm = SVM(DTR, L, c, K, pol_kern.polynomial)
+            scores = np.hstack((scores, svm.scores(DTR, LTR, DTE)))
+
+    idx_new = np.random.permutation(scores.shape[0])
+    scores = scores[idx_new]
+    labels = labels[idx_new]
+
+    frac = 7/10
+    DTR = vrow(scores[:int(scores.shape[0]* frac)])
+    LTR = labels[:int(labels.shape[0] * frac)]
+    DTE = vrow(scores[int(scores.shape[0] * frac):])
+    LTE = labels[int(labels.shape[0] * frac):]
+
+    return DTR, LTR, DTE, LTE
+
+
+pi_calibration = 1e-1 * np.arange(1,10,1)
+def calibration_wrapper(D,L):
+    for p in pi_calibration:
+        plt.figure()
+        for i, model in enumerate(['MVG', 'logreg', 'SVM']):
+            DTR, LTR, DTE, LTE = calibration(D, L, model=model)
+            scores_cal, _, _ = logreg_wrapper(D, L, 0, pi=p, C_fn=1, C_fp=1, cal=True, DTR=DTR, LTR=LTR, DTE=DTE)
+            evaluation.Bayes_error_plots(scores_cal, LTE, pi=p, model=model, i_col=i)
+
+
+################################################## FUSION ######################################################################################################################################################
+
+def best_scores(D, L, K_fold=5, seed=1, model='MVG'):
+    nSamp = int(D.shape[1] / K_fold)
+    residuals = D.shape[1] - nSamp * K_fold
+    sub_arr = np.ones((K_fold, 1)) * nSamp
+
+    if residuals != 0:
+        sub_arr = np.array([int(x + 1) for x in sub_arr[:residuals]] + [int(x) for x in sub_arr[residuals:]])
+    np.random.seed(seed)
+    idx = np.random.permutation(D.shape[1])
+
+    scores = np.array([])
+    labels = np.array([])
+
+    for i in range(K_fold):
+        idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
+        idxTrain = [x for x in idx if x not in idxTest]
+        DTR = D[:, idxTrain]
+        DTE = D[:, idxTest]
+        LTR = L[idxTrain]
+        LTE = L[idxTest]
+
+
+        if model == "MVG":
+            DTR, P = PCA(DTR, PCA_MVG, m_eig=True)
+            DTE = np.dot(P.T, DTE)
+
+            labels = np.hstack((labels, LTE))
+            scores = np.hstack((scores, scores_gaussian(DTR, LTR, DTE)))
+        elif model == "logreg":
+            DTR, P = PCA(DTR, PCA_logreg, m_eig=True)
+            DTE = np.dot(P.T, DTE)
+
+            labels = np.hstack((labels, LTE))
+            scores = np.hstack((scores, scores_logreg(DTR, LTR, DTE, lam)))
+        elif model == "SVM":
+            DTR, P = PCA(DTR, PCA_SVM, m_eig=True)
+            DTE = np.dot(P.T, DTE)
+
+            labels = np.hstack((labels, LTE))
+            pol_kern = Kernel(d=2, K=K)
+            svm = SVM(DTR, L, c, K, pol_kern.polynomial)
+            scores = np.hstack((scores, svm.scores(DTR, LTR, DTE)))
+        elif model == 'GMM':
+
+            labels = np.hstack((labels, LTE))
+            scores = np.hstack((scores, scores_gmm(DTR, LTR, DTE, g_target, g_NONtarget)))
+
+    np.random.seed(seed+1)
+    idx_new = np.random.permutation(scores.shape[0])
+    scores = scores[idx_new]
+    labels = labels[idx_new]
+
+    frac = 7 / 10
+    DTR = vrow(scores[:int(scores.shape[0] * frac)])
+    LTR = labels[:int(labels.shape[0] * frac)]
+    DTE = vrow(scores[int(scores.shape[0] * frac):])
+    LTE = labels[int(labels.shape[0] * frac):]
+
+    return DTR, LTR, DTE, LTE
+
+
+fusion_table = PrettyTable()
+fusion_table.field_names = ['models', 'actDCF (pi = 0.1)', 'actDCF (pi = 0.5)',
+                            'minDCF (pi = 0.1)', 'minDCF (pi = 0.5)', 'C_prim']
+
+def fusion_wrapper(D, L):
+    original_stdout = sys.stdout
+
+    with open(fusion_output_file, 'w') as f:
+        sys.stdout = f
+        models = np.array(['GMM', 'SVM', 'logreg', 'MVG'])
+        DTR_gmm, LTR, DTE_gmm, LTE = best_scores(D,L,model='GMM')
+        DTR_svm, _, DTE_svm, _ = best_scores(D, L, model='SVM')
+        DTR_logreg, _, DTE_logreg, _ = best_scores(D, L, model='logreg')
+        DTR_mvg, _, DTE_mvg, _ = best_scores(D, L, model='MVG')
+
+        p = 0.5
+        scores_fus_GMM, _, _ = logreg_wrapper(D, L, 0, pi=p, C_fn=1, C_fp=1, cal=True,
+                                              DTR=vrow(DTR_gmm), LTR=LTR,
+                                              DTE=vrow(DTE_gmm))
+        scores_fus_SVM, _, _ = logreg_wrapper(D, L, 0, pi=p, C_fn=1, C_fp=1, cal=True,
+                                              DTR=vrow(DTR_svm), LTR=LTR,
+                                              DTE=vrow(DTE_svm))
+        scores_fus_logreg, _, _ = logreg_wrapper(D, L, 0, pi=p, C_fn=1, C_fp=1, cal=True,
+                                                 DTR=vrow(DTR_logreg), LTR=LTR,
+                                                 DTE=vrow(DTE_logreg))
+        scores_fus_MVG, _, _ = logreg_wrapper(D, L, 0, pi=p, C_fn=1, C_fp=1, cal=True,
+                                              DTR=vrow(DTR_mvg), LTR=LTR,
+                                              DTE=vrow(DTE_mvg))
+
+        couples = list(combinations(models, 2))
+        triplets = list(combinations(models, 3))
+
+        all_combins = couples + triplets + [tuple(models)]
+
+        for combin_i in all_combins:
+            idx = [False, False, False, False]
+            scores_fus = np.zeros(DTE_gmm.shape[1])
+            if 'GMM' in combin_i:
+                idx[0] = True
+                scores_fus += np.array(scores_fus_GMM)
+            if 'SVM' in combin_i:
+                idx[1] = True
+                scores_fus += np.array(scores_fus_SVM)
+            if 'logreg' in combin_i:
+                idx[2] = True
+                scores_fus += np.array(scores_fus_logreg)
+            if 'MVG' in combin_i:
+                idx[3] = True
+                scores_fus += np.array(scores_fus_MVG)
+
+            minDCF0 = evaluation.minDCF(scores_fus, LTE, 0.1,1,1)
+            actDCF0 = evaluation.Bayes_risk_normalized(scores_fus, LTE, 0.1, 1, 1)
+            minDCF1 = evaluation.minDCF(scores_fus, LTE, 0.5, 1, 1)
+            actDCF1 = evaluation.Bayes_risk_normalized(scores_fus, LTE, 0.5, 1, 1)
+            C_prim = np.mean([minDCF0, minDCF1])
+            fusion_table.add_row([models[idx], actDCF0, actDCF1, minDCF0, minDCF1, C_prim])
+
+        print(fusion_table)
+        sys.stdout = original_stdout
+
+
+def scores_to_plot(D, L, K_fold = 5, seed = 1, model = 'MVG'):
+    nSamp = int(D.shape[1] / K_fold)
+    residuals = D.shape[1] - nSamp * K_fold
+    sub_arr = np.ones((K_fold, 1)) * nSamp
+
+    if residuals != 0:
+        sub_arr = np.array([int(x + 1) for x in sub_arr[:residuals]] + [int(x) for x in sub_arr[residuals:]])
+    np.random.seed(seed)
+    idx = np.random.permutation(D.shape[1])
+
+    scores = np.array([])
+    labels = np.array([])
+
+    for i in range(K_fold):
+        idxTest = idx[int(np.sum(sub_arr[:i])):int(np.sum(sub_arr[:i + 1]))]
+        idxTrain = [x for x in idx if x not in idxTest]
+        DTR = D[:, idxTrain]
+        DTE = D[:, idxTest]
+        LTR = L[idxTrain]
+        LTE = L[idxTest]
+
+        if model == "MVG":
+            DTR, P = PCA(DTR, PCA_MVG, m_eig=True)
+            DTE = np.dot(P.T, DTE)
+
+            labels = np.hstack((labels, LTE))
+            scores = np.hstack((scores, scores_gaussian(DTR, LTR, DTE)))
+
+        elif model == "logreg":
+            DTR, P = PCA(DTR, PCA_logreg, m_eig=True)
+            DTE = np.dot(P.T, DTE)
+
+            labels = np.hstack((labels, LTE))
+            scores = np.hstack((scores, scores_logreg(DTR, LTR, DTE, lam)))
+        elif model == "SVM":
+            DTR, P = PCA(DTR, PCA_SVM, m_eig=True)
+            DTE = np.dot(P.T, DTE)
+
+            labels = np.hstack((labels, LTE))
+            pol_kern = Kernel(d=2, K=K)
+            svm = SVM(DTR, L, c, K, pol_kern.polynomial)
+            scores = np.hstack((scores, svm.scores(DTR, LTR, DTE)))
+        elif model == 'GMM':
+
+            labels = np.hstack((labels, LTE))
+            scores = np.hstack((scores, scores_gmm(DTR, LTR, DTE, g_target, g_NONtarget)))
+
+    return scores, labels
+
+def DET_plot(D,L):
+    models = np.array(['GMM', 'SVM', 'logreg', 'MVG'])
+    colors = ['red', 'green', 'blue', 'fuchsia']
+
+    plt.figure()
+    for i, model in enumerate(models):
+        scores, labels = scores_to_plot(D, L, model=model)
+        evaluation.DET_curve(scores, labels, model=model, color=colors[i])
+        if i == 3:
+            plt.savefig('../Plots/DET_plot_BESTmodels.png', bbox_inches='tight')
+            # plt.show(bbox_inches='tight')
+            plt.close()
