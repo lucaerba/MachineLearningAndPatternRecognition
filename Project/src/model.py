@@ -702,10 +702,39 @@ pi_calibration = 1e-1 * np.arange(1,10,1)
 def calibration_wrapper(D,L):
     for p in pi_calibration:
         plt.figure()
+        colors = ['red', 'green', 'blue']
         for i, model in enumerate(['MVG', 'logreg', 'SVM']):
             DTR, LTR, DTE, LTE = calibration(D, L, model=model)
             scores_cal, _, _ = logreg_wrapper(D, L, 0, pi=p, C_fn=1, C_fp=1, cal=True, DTR=DTR, LTR=LTR, DTE=DTE)
-            evaluation.Bayes_error_plots(scores_cal, LTE, pi=p, model=model, i_col=i)
+            evaluation.Bayes_error_plots(scores_cal, LTE, model=model, color=colors[i])
+            if i == 2:
+                plt.savefig(f'../Plots/BESTmodels_calibration_pi={p}.png', bbox_inches='tight')
+                # plt.show(bbox_inches='tight')
+                plt.close()
+
+calibration_file = '../FINALoutputs/calibration_DCF.txt'
+calibration_table = PrettyTable()
+calibration_table.field_names = ['models', 'actDCF (pi = 0.1)', 'actDCF (pi = 0.5)',
+                             'minDCF (pi = 0.1)', 'minDCF (pi = 0.5)', 'C_prim']
+
+def calibration_DCF(D,L):
+    original_stdout = sys.stdout
+
+    models = np.array(['SVM', 'logreg', 'MVG'])
+    for model in models:
+        DTR, LTR, DTE, LTE = calibration(D, L, model=model)
+        scores_cal, _, _ = logreg_wrapper(D, L, 0, pi=0.4, C_fn=1, C_fp=1, cal=True, DTR=DTR, LTR=LTR, DTE=DTE)
+        minDCF0 = evaluation.minDCF(scores_cal, LTE, 0.1, 1, 1)
+        actDCF0 = evaluation.Bayes_risk_normalized(scores_cal, LTE, 0.1, 1, 1)
+        minDCF1 = evaluation.minDCF(scores_cal, LTE, 0.5, 1, 1)
+        actDCF1 = evaluation.Bayes_risk_normalized(scores_cal, LTE, 0.5, 1, 1)
+        C_prim = np.mean([minDCF0, minDCF1])
+        calibration_table.add_row([model, actDCF0, actDCF1, minDCF0, minDCF1, C_prim])
+
+    with open(calibration_file, 'w') as f:
+        sys.stdout = f
+        print(calibration_table)
+    sys.stdout = original_stdout
 
 
 ################################################## FUSION ######################################################################################################################################################
@@ -881,15 +910,34 @@ def scores_to_plot(D, L, K_fold = 5, seed = 1, model = 'MVG'):
 
     return scores, labels
 
-def DET_plot(D,L):
+def DET_plot(D,L,seed=1, calibration=False):
     models = np.array(['GMM', 'SVM', 'logreg', 'MVG'])
     colors = ['red', 'green', 'blue', 'fuchsia']
 
     plt.figure()
     for i, model in enumerate(models):
         scores, labels = scores_to_plot(D, L, model=model)
+        if calibration == True and model != 'GMM':
+            np.random.seed(seed)
+            idx_new = np.random.permutation(scores.shape[0])
+            scores = scores[idx_new]
+            labels = labels[idx_new]
+
+            frac = 7 / 10
+            DTR = vrow(scores[:int(scores.shape[0] * frac)])
+            LTR = labels[:int(labels.shape[0] * frac)]
+            DTE = vrow(scores[int(scores.shape[0] * frac):])
+            LTE = labels[int(labels.shape[0] * frac):]
+            scores, _, _ = logreg_wrapper(DTR, LTR, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
+                                          DTR=vrow(DTR), LTR=LTR, DTE=DTE)
+            labels = LTE
         evaluation.DET_curve(scores, labels, model=model, color=colors[i])
         if i == 3:
-            plt.savefig('../Plots/DET_plot_BESTmodels.png', bbox_inches='tight')
-            # plt.show(bbox_inches='tight')
-            plt.close()
+            if calibration == True:
+                plt.savefig('../Plots/DET_plot_BESTmodels_calibrated.png', bbox_inches='tight')
+                # plt.show(bbox_inches='tight')
+                plt.close()
+            else:
+                plt.savefig('../Plots/DET_plot_BESTmodels.png', bbox_inches='tight')
+                # plt.show(bbox_inches='tight')
+                plt.close()

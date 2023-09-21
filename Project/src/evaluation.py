@@ -81,7 +81,7 @@ def DET_curve(f_llr,f_labels,model='MVG',color='red'):
     plt.tick_params(axis='y', labelsize=16)
 
 
-def Bayes_error_plots(llr,labels,pi=None,color='red',model='MVG',i_col=0):
+def Bayes_error_plots(llr,labels,color='red',model='MVG'):
     DCF_min = []
     DCF = []
     effPriorLogOdds = np.linspace(-3, 3, 25)

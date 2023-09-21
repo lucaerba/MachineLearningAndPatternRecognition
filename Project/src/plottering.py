@@ -167,19 +167,41 @@ def explained_variance_plot(D):
     plt.close()
 
 def plot_Scatter(DTR, LTR):
-    idx = 0
+    fig, axes = plt.subplots(10, 10, figsize=(15, 15))
+    plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, hspace=0.5, wspace=0.5)
+    data = []
+    with open(file_path, "r") as file:
+        for line in file:
+            line = line.strip()
+            elements = line.split(",")
+            data.append([float(element) for element in elements])
+
     for i in range(DTR.shape[0]):
         for j in range(DTR.shape[0]):
             if i != j:
-                plt.figure()
-                plt.scatter(DTR[i, LTR == 0], DTR[j, LTR == 0], label="0")
-                plt.scatter(DTR[i, LTR == 1], DTR[j, LTR == 1], label="1")
-                plt.legend()
-                plt.xlabel("Feature " + str(i))
-                plt.ylabel("Feature " + str(j))
-                plt.savefig("../Plots/scatter_" + str(idx))
-                idx += 1
-                plt.close()
+                ax = axes[i, j]
+                ax.scatter(DTR[i, LTR == 0], DTR[j, LTR == 0], alpha=0.2, color='red')
+                ax.scatter(DTR[i, LTR == 1], DTR[j, LTR == 1], alpha=0.2, color='blue')
+                ax.tick_params(axis='x', labelsize=14)
+                ax.tick_params(axis='y', labelsize=14)
+                # ax.xlabel("\\textbf{Feature} " + str(i), fontsize=16)
+                # ax.ylabel("\\textbf{Feature} " + str(j), fontsize=16)
+                # plt.savefig("../Plots/scatter_" + str(idx))
+            else:
+                ax = axes[i, j]
+                x_values = [entry[i] for entry in data]
+                classes = [entry[-1] for entry in data]
+
+                x_class0 = [x for x, c in zip(x_values, classes) if c == 0]
+                x_class1 = [x for x, c in zip(x_values, classes) if c == 1]
+                ax.hist(x_class0, bins=30, alpha=0.4, density=True, linewidth=1.0, color='red')
+                ax.hist(x_class1, bins=30, alpha=0.4, density=True, linewidth=1.0, color='blue')
+                ax.tick_params(axis='x', labelsize=14)
+                ax.tick_params(axis='y', labelsize=14)
+    # ax.legend(fontsize=16)
+    # plt.show()
+    plt.savefig('../Plots/Scatter_biggrid.png', bbox_inches='tight')
+    plt.close()
 
 def plot_PCA(D,L,m,s=16):
 
@@ -456,6 +478,8 @@ if __name__ == '__main__':
 
     # plot_simple()
 
+    plot_Scatter(D,L)
+
     # m = 4
     # DP = PCA(D,m)
     # plot_PCA(DP,L,m)
@@ -470,9 +494,9 @@ if __name__ == '__main__':
     # plot_correlations(D[:,L == 0], 'Reds', subset='different speaker')
 
 
-    C = PrettyTab_to_data(gmm_file, fields_gmm, model='gmm')
-    for i in [0]: # range(9) for all PCA
-        C_prim_plot(C, i, model='gmm')
+    # C = PrettyTab_to_data(gmm_file, fields_gmm, model='gmm')
+    # for i in [0]: # range(9) for all PCA
+    #     C_prim_plot(C, i, model='gmm')
 
     # C = PrettyTab_to_data(nb_file, fields_gaussians)
     # C_prim_plot(C, model='MVG')

@@ -8,7 +8,7 @@ import numpy as np
 import threading
 
 def main(seed=0):
-    # D, L = input.load(input.traininput)
+    D, L = input.load(input.traininput)
 
     # np.random.seed(seed)
     # idx = np.random.permutation(D.shape[1])
@@ -47,7 +47,8 @@ def main(seed=0):
     # model.actual_DCF_and_scores(D,L)
     # model.calibration_wrapper(D, L)
     # model.fusion_wrapper(D, L)
-    # model.DET_plot(D,L)
+    # model.DET_plot(D,L,calibration=True)
+    # model.calibration_DCF(D,L)
 
     #evaluation
 
@@ -71,8 +72,9 @@ def main(seed=0):
     # testing.evaluation_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin)
     # testing.DET_plot_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin)
     # testing.Bayes_plot_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin)
-    # testing.optimal_wrap_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG')
-    testing.fusion_wrapper(DTR_fin, LTR_fin, DTE_fin, LTE_fin)
+    testing.optimal_wrap_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='GMM')
+    testing.optimal_wrap_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG')
+    # testing.fusion_wrapper(DTR_fin, LTR_fin, DTE_fin, LTE_fin)
        
 if __name__ == '__main__':
     main()

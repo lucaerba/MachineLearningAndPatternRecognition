@@ -1,5 +1,4 @@
 import numpy as np
-
 import evaluation
 from prettytable import PrettyTable
 import matplotlib.pyplot as plt
@@ -33,7 +32,7 @@ K = 10
 
 g_target = 1
 g_NONtarget = 8
-def scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', seed=0):
+def scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', seed=0, calibration=False):
 
     if model == "MVG":
         DTR, P = PCA(DTR_fin, PCA_MVG)
@@ -41,20 +40,22 @@ def scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', seed=0):
 
         scores = scores_gaussian(DTR, LTR_fin, DTE)
 
-        np.random.seed(seed)
-        idx_new = np.random.permutation(scores.shape[0])
-        scores = scores[idx_new]
-        labels = LTE_fin[idx_new]
+        if calibration == False:
+            return scores, LTE_fin
+        else:
+            np.random.seed(seed)
+            idx_new = np.random.permutation(scores.shape[0])
+            scores = scores[idx_new]
+            labels = LTE_fin[idx_new]
 
-        frac = 7 / 10
-        DTR = vrow(scores[:int(scores.shape[0] * frac)])
-        LTR = labels[:int(labels.shape[0] * frac)]
-        DTE = vrow(scores[int(scores.shape[0] * frac):])
-        LTE = labels[int(labels.shape[0] * frac):]
-        scores, _, _ = logreg_wrapper(DTR_fin, LTR_fin, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
-                                      DTR=vrow(DTR), LTR=LTR, DTE=DTE)
-
-        return scores, LTE
+            frac = 7 / 10
+            DTR = vrow(scores[:int(scores.shape[0] * frac)])
+            LTR = labels[:int(labels.shape[0] * frac)]
+            DTE = vrow(scores[int(scores.shape[0] * frac):])
+            LTE = labels[int(labels.shape[0] * frac):]
+            scores, _, _ = logreg_wrapper(DTR_fin, LTR_fin, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
+                                          DTR=vrow(DTR), LTR=LTR, DTE=DTE)
+            return scores, LTE
 
     elif model == "logreg":
         DTR, P = PCA(DTR_fin, PCA_logreg)
@@ -62,20 +63,22 @@ def scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', seed=0):
 
         scores = scores_logreg(DTR, LTR_fin, DTE, lam)
 
-        np.random.seed(seed)
-        idx_new = np.random.permutation(scores.shape[0])
-        scores = scores[idx_new]
-        labels = LTE_fin[idx_new]
+        if calibration == False:
+            return scores, LTE_fin
+        else:
+            np.random.seed(seed)
+            idx_new = np.random.permutation(scores.shape[0])
+            scores = scores[idx_new]
+            labels = LTE_fin[idx_new]
 
-        frac = 7 / 10
-        DTR = vrow(scores[:int(scores.shape[0] * frac)])
-        LTR = labels[:int(labels.shape[0] * frac)]
-        DTE = vrow(scores[int(scores.shape[0] * frac):])
-        LTE = labels[int(labels.shape[0] * frac):]
-        scores, _, _ = logreg_wrapper(DTR_fin, LTR_fin, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
-                                      DTR=vrow(DTR), LTR=LTR, DTE=DTE)
-
-        return scores, LTE
+            frac = 7 / 10
+            DTR = vrow(scores[:int(scores.shape[0] * frac)])
+            LTR = labels[:int(labels.shape[0] * frac)]
+            DTE = vrow(scores[int(scores.shape[0] * frac):])
+            LTE = labels[int(labels.shape[0] * frac):]
+            scores, _, _ = logreg_wrapper(DTR_fin, LTR_fin, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
+                                          DTR=vrow(DTR), LTR=LTR, DTE=DTE)
+            return scores, LTE
 
     elif model == "SVM":
         DTR_fin, P = PCA(DTR_fin, PCA_SVM)
@@ -85,41 +88,42 @@ def scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', seed=0):
         svm = SVM(DTR_fin, LTR_fin, c, K, pol_kern.polynomial)
         scores = svm.scores(DTR_fin, LTR_fin, DTE_fin)
 
-        np.random.seed(seed)
-        idx_new = np.random.permutation(scores.shape[0])
-        scores = scores[idx_new]
-        labels = LTE_fin[idx_new]
+        if calibration == False:
+            return scores, LTE_fin
+        else:
+            np.random.seed(seed)
+            idx_new = np.random.permutation(scores.shape[0])
+            scores = scores[idx_new]
+            labels = LTE_fin[idx_new]
 
-        frac = 7 / 10
-        DTR = vrow(scores[:int(scores.shape[0] * frac)])
-        LTR = labels[:int(labels.shape[0] * frac)]
-        DTE = vrow(scores[int(scores.shape[0] * frac):])
-        LTE = labels[int(labels.shape[0] * frac):]
-        scores, _, _ = logreg_wrapper(DTR_fin, LTR_fin, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
-                                      DTR=vrow(DTR), LTR=LTR, DTE=DTE)
-        return scores, LTE
+            frac = 7 / 10
+            DTR = vrow(scores[:int(scores.shape[0] * frac)])
+            LTR = labels[:int(labels.shape[0] * frac)]
+            DTE = vrow(scores[int(scores.shape[0] * frac):])
+            LTE = labels[int(labels.shape[0] * frac):]
+            scores, _, _ = logreg_wrapper(DTR_fin, LTR_fin, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
+                                          DTR=vrow(DTR), LTR=LTR, DTE=DTE)
+            return scores, LTE
 
     elif model == 'GMM':
-
-        scores = scores_gmm(DTR_fin, LTR_fin, DTE_fin, g_target, g_NONtarget)
-        return scores, LTE_fin
-
-    elif model == 'GMM calibrated':
         scores = scores_gmm(DTR_fin, LTR_fin, DTE_fin, g_target, g_NONtarget)
 
-        np.random.seed(seed)
-        idx_new = np.random.permutation(scores.shape[0])
-        scores = scores[idx_new]
-        labels = LTE_fin[idx_new]
+        if calibration == False:
+            return scores, LTE_fin
+        else:
+            np.random.seed(seed)
+            idx_new = np.random.permutation(scores.shape[0])
+            scores = scores[idx_new]
+            labels = LTE_fin[idx_new]
 
-        frac = 7 / 10
-        DTR = vrow(scores[:int(scores.shape[0] * frac)])
-        LTR = labels[:int(labels.shape[0] * frac)]
-        DTE = vrow(scores[int(scores.shape[0] * frac):])
-        LTE = labels[int(labels.shape[0] * frac):]
-        scores, _, _ = logreg_wrapper(DTR_fin, LTR_fin, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
-                                      DTR=vrow(DTR), LTR=LTR, DTE=DTE)
-        return scores, LTE
+            frac = 7 / 10
+            DTR = vrow(scores[:int(scores.shape[0] * frac)])
+            LTR = labels[:int(labels.shape[0] * frac)]
+            DTE = vrow(scores[int(scores.shape[0] * frac):])
+            LTE = labels[int(labels.shape[0] * frac):]
+            scores, _, _ = logreg_wrapper(DTR_fin, LTR_fin, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
+                                          DTR=vrow(DTR), LTR=LTR, DTE=DTE)
+            return scores, LTE
 
 
 fusion_output_file = '../FINALoutputs/fusion_models_EVAL.txt'
@@ -230,10 +234,9 @@ def evaluation_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin):
 
     with open(evaluation_test_file, 'w') as f:
         sys.stdout = f
-        # models = ['GMM', 'SVM', 'logreg', 'MVG']
-        models = ['GMM calibrated', 'SVM', 'logreg', 'MVG']
+        models = ['GMM', 'SVM', 'logreg', 'MVG']
         for model in models:
-            scores, LTE = scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model=model)
+            scores, LTE = scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model=model, calibration=False)
             minDCF0 = evaluation.minDCF(scores, LTE, 0.1, 1, 1)
             actDCF0 = evaluation.Bayes_risk_normalized(scores, LTE, 0.1, 1, 1)
             minDCF1 = evaluation.minDCF(scores, LTE, 0.5, 1, 1)
@@ -250,7 +253,10 @@ def DET_plot_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin):
 
     plt.figure()
     for i, model in enumerate(models):
-        scores, labels = scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model=model)
+        if model == 'GMM':
+            scores, labels = scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model=model, calibration=False)
+        else:
+            scores, labels = scores_test(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model=model, calibration=True)
         evaluation.DET_curve(scores, labels, model=model, color=colors[i])
         if i == 3:
             plt.savefig('../Plots/DET_plot_EVALUATIONmodels.png', bbox_inches='tight')
@@ -258,8 +264,7 @@ def DET_plot_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin):
             plt.close()
 
 def Bayes_plot_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin):
-    # models = np.array(['GMM', 'SVM', 'logreg', 'MVG'])
-    models = ['GMM calibrated', 'SVM', 'logreg', 'MVG']
+    models = np.array(['GMM', 'SVM', 'logreg', 'MVG'])
     colors = ['red', 'green', 'blue', 'fuchsia']
 
     plt.figure()
@@ -278,6 +283,7 @@ def optimal_wrap_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', see
 
     plt.figure()
     C_prim_list = []
+    minDCF_list = []
     PCA_list = ['No PCA', 9, 8, 7, 6, 5]
     lambda_list = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10, 100]
     g_list = [1,2,4,8,16]
@@ -298,8 +304,10 @@ def optimal_wrap_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', see
             minDCF0 = evaluation.minDCF(scores,labels,0.1,1,1)
             minDCF1 = evaluation.minDCF(scores, labels, 0.5, 1, 1)
             C_prim_list.append(np.mean([minDCF0, minDCF1]))
+            minDCF_list.append(minDCF0)
 
         print(f'm min: {PCA_list[np.argmin(C_prim_list)]}, C_prim = {np.min(C_prim_list)}')
+        print(f'm min: {PCA_list[np.argmin(minDCF_list)]}, minDCF optimal = {np.min(minDCF_list)}')
         plt.plot(PCA_list, C_prim_list)
         plt.xlabel('\\textbf{PCA}', fontsize=16)
         plt.ylabel('\\textbf{$C_{prim}$}', fontsize=16)
@@ -334,8 +342,10 @@ def optimal_wrap_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', see
             minDCF0 = evaluation.minDCF(scores,labels,0.1,1,1)
             minDCF1 = evaluation.minDCF(scores, labels, 0.5, 1, 1)
             C_prim_list.append(np.mean([minDCF0, minDCF1]))
+            minDCF_list.append(minDCF0)
 
         print(f'lambda min: {lambda_list[np.argmin(C_prim_list)]}, C_prim = {np.min(C_prim_list)}')
+        print(f'lambda min: {lambda_list[np.argmin(minDCF_list)]}, minDCF optimal = {np.min(minDCF_list)}')
         plt.plot(lambda_list, C_prim_list)
         plt.xlabel('\\textbf{$\lambda$}', fontsize=16)
         plt.ylabel('\\textbf{$C_{prim}$}', fontsize=16)
@@ -352,9 +362,50 @@ def optimal_wrap_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', see
     elif model == "GMM":
         for g_target in [1,2,4]:
             C_prim_list = []
+            minDCF_list = []
             for g_NONtarget in g_list:
                 scores = scores_gmm(DTR_fin, LTR_fin, DTE_fin, g_target, g_NONtarget)
                 labels =  LTE_fin
+                minDCF0 = evaluation.minDCF(scores, labels, 0.1, 1, 1)
+                minDCF1 = evaluation.minDCF(scores, labels, 0.5, 1, 1)
+                C_prim_list.append(np.mean([minDCF0, minDCF1]))
+                minDCF_list.append(minDCF0)
+
+            print(f'g_target: {g_target}')
+            print(f'g_NONtarget min: {g_list[np.argmin(C_prim_list)]}, C_prim = {np.min(C_prim_list)}')
+            print(f'g_NONtarget min: {g_list[np.argmin(minDCF_list)]}, minDCF optimal = {np.min(minDCF_list)}')
+            plt.plot(np.arange(len(g_list)), C_prim_list, label='$K_{target}$: '+f'{g_target}')
+            plt.legend(fontsize=16)
+            plt.xlabel('\\textbf{$K_{non target}$}', fontsize=16)
+            plt.ylabel('\\textbf{$C_{prim}$}', fontsize=16)
+            plt.tick_params(axis='x', labelsize=14)
+            plt.tick_params(axis='y', labelsize=14)
+            ax = plt.gca()
+            ax.set_xticks(np.arange(len(g_list)))
+            ax.set_xticklabels(g_list)
+            plt.grid()
+        # plt.show()
+        plt.savefig('../Plots/EVAL_optimal_gmm.png', bbox_inches='tight')
+        plt.close()
+
+    elif model == "GMM calibrated":
+        for g_target in [1,2,4]:
+            C_prim_list = []
+            for g_NONtarget in g_list:
+                scores = scores_gmm(DTR_fin, LTR_fin, DTE_fin, g_target, g_NONtarget)
+                np.random.seed(seed)
+                idx_new = np.random.permutation(scores.shape[0])
+                scores = scores[idx_new]
+                labels = LTE_fin[idx_new]
+
+                frac = 7 / 10
+                DTR = vrow(scores[:int(scores.shape[0] * frac)])
+                LTR = labels[:int(labels.shape[0] * frac)]
+                DTE = vrow(scores[int(scores.shape[0] * frac):])
+                LTE = labels[int(labels.shape[0] * frac):]
+                scores, _, _ = logreg_wrapper(DTR_fin, LTR_fin, 0, pi=0.4, C_fn=1, C_fp=1, cal=True,
+                                              DTR=vrow(DTR), LTR=LTR, DTE=DTE)
+                labels = LTE
                 minDCF0 = evaluation.minDCF(scores, labels, 0.1, 1, 1)
                 minDCF1 = evaluation.minDCF(scores, labels, 0.5, 1, 1)
                 C_prim_list.append(np.mean([minDCF0, minDCF1]))
@@ -372,12 +423,13 @@ def optimal_wrap_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', see
             ax.set_xticklabels(g_list)
             plt.grid()
         # plt.show()
-        plt.savefig('../Plots/EVAL_optimal_gmm.png', bbox_inches='tight')
+        plt.savefig('../Plots/EVAL_optimal_gmm_calibrated.png', bbox_inches='tight')
         plt.close()
 
     elif model == "SVM":
         for K in K_list:
             C_prim_list = []
+            minDCF_list = []
             for c in c_list:
                 DTR_fin, P = PCA(DTR_fin, PCA_SVM)
                 DTE_fin = np.dot(P.T, DTE_fin)
@@ -403,9 +455,11 @@ def optimal_wrap_evaluation(DTR_fin, DTE_fin, LTR_fin, LTE_fin, model='MVG', see
                 minDCF0 = evaluation.minDCF(scores,labels,0.1,1,1)
                 minDCF1 = evaluation.minDCF(scores, labels, 0.5, 1, 1)
                 C_prim_list.append(np.mean([minDCF0, minDCF1]))
+                minDCF_list.append(minDCF0)
 
             print(f'K: {K}')
             print(f'c min: {c_list[np.argmin(C_prim_list)]}, C_prim = {np.min(C_prim_list)}')
+            print(f'c min: {c_list[np.argmin(minDCF_list)]}, minDCF optimal = {np.min(minDCF_list)}')
             plt.plot(c_list, C_prim_list, label='\\textbf{K = ' +f'{K}'+'}')
             plt.xlabel('\\textbf{$c$}', fontsize=16)
             plt.ylabel('\\textbf{$C_{prim}$}', fontsize=16)
